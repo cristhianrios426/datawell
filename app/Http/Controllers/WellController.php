@@ -1,0 +1,258 @@
+<?php
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+use App\Repository\WellRepository as Repository;
+use App\Repository\AttachmentRepository;
+use App\ORM\Well as Model;
+use App\ORM\CoordinateSys;
+use App\ORM\Area;
+use App\ORM\Camp;
+use App\ORM\Cuenca;
+use App\ORM\Block;
+use App\ORM\WellType;
+use App\ORM\Desviation;
+use App\ORM\ServiceType;
+use App\ORM\Operator;
+use App\ORM\Attachment;
+//use App\ORM\ServiceType;
+class WellController extends Controller
+{
+
+    protected $repository;
+    public $classname;
+    public $entityName;
+    public $entitiesName;
+
+    public function __construct(){
+        $this->repository = new Repository();
+        $this->classname = Model::class;
+
+         $this->entityName ="well";
+        $this->entitiesName ="wells";
+        \View::share ( 'entityLabel',  'pozo');
+        \View::share ( 'entitiesLabel', 'pozos');
+        \View::share ( 'entityName', $this->entityName);
+    }
+
+    public function index(Request $request)
+    {   
+        $query = $request->all();
+        $sorts = ['name'];
+        $sortLinks  = Model::sortableLinks($query, $sorts);
+
+        $this->repository->filter($request);
+        $this->repository->with(['cuenca', 'area', 'operator', 'camp', 'type' , 'block','deviation' , 'coorSys']);
+        $models = $this->repository->paginate(12);
+        if (request()->wantsJson()) {
+            return response()->json($models);
+        }
+
+        $data = array(
+            'coorSystems' => CoordinateSys::all(),
+            'areas' => Area::all(),
+            'camps' => Camp::all(),
+            'cuencas' => Cuenca::all(),
+            'blocks' => Block::all(),
+            'types' => WellType::all(),
+            'desviations' => Desviation::all(),
+            'operators' => Operator::all(),
+            'models' => $models,
+            'query' =>$query,
+            'sortLinks' => $sortLinks,
+            'serviceTypes'=>ServiceType::all()
+        );
+        return view($this->entitiesName.'.index', $data);
+    }
+
+    public function form($request, $id = null){
+        if($id == null){
+            $model = new Model();
+        }else{
+            $model = $this->repository->whereKey($id)->first();
+        }
+
+        if(!$model){
+            \App::abort(404);
+        }
+        $data = array(
+            'coorSystems' => CoordinateSys::all(),
+            'areas' => Area::all(),
+            'camps' => Camp::all(),
+            'cuencas' => Cuenca::all(),
+            'blocks' => Block::all(),
+            'types' => WellType::all(),
+            'desviations' => Desviation::all(),
+            'operators' => Operator::all(),
+            'model' => $model,
+        );
+        return view($this->entitiesName.'.create', $data); 
+    }
+
+    public function create(Request $request){
+       return $this->form($request);
+    }
+
+    
+    public function store(Request $request)
+    {
+        \DB::beginTransaction();
+        try {
+            $this->repository->save((new $this->classname), $request->all());
+            if($request->has('attachments') && is_array($request->get('attachments'))){
+                $attachRepo = new AttachmentRepository();
+                foreach ($request->input('attachments') as $key => $attach) {
+                    try {
+                        $attachRepo->save(new Attachment, $attach);
+                        $this->repository->getEntity()->attachments()->save($attachRepo->getEntity());
+                        $attachRepo->getEntity()->save();
+                    }catch (\App\Repository\Exception\ValidatorException $e) {
+                        \DB::rollback();
+                        return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
+                    }catch (\App\Repository\Exception\SaveException $e) {
+                       \DB::rollback(); 
+                        return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
+                    }
+                }
+            }
+            \DB::commit(); 
+            return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('well.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
+        } catch (\App\Repository\Exception\ValidatorException $e) {
+            \DB::rollback();
+           return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
+        }
+    }
+
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        $model = $this->repository->find($id);
+
+        if (request()->wantsJson()) {
+
+            return response()->json([
+                'data' => $model,
+            ]);
+        }
+
+        return view($this->entitiesName.'.show', compact('model'));
+    }
+
+
+
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+     public function edit(Request $request, $id){
+           return $this->form($request, $id);
+    }
+
+
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  $this->classnameUpdateRequest $request
+     * @param  string            $id
+     *
+     * @return Response
+     */
+    public function update(Request $request, $id)
+    {
+
+        $model = $this->repository->whereKey($id)->first();
+        if(!$model){
+            \App::abort(404);
+        }
+
+        \DB::beginTransaction();
+        try {
+            $this->repository->save($model, $request->all());
+            if($request->has('attachments') && is_array($request->get('attachments'))){
+                $attachRepo = new AttachmentRepository();
+                foreach ($request->input('attachments') as $key => $attach) {
+                    try {
+                        $attachRepo->save(new Attachment, $attach);
+                        $this->repository->getEntity()->attachments()->save($attachRepo->getEntity());
+                        $attachRepo->getEntity()->save();
+                    }catch (\App\Repository\Exception\ValidatorException $e) {
+                        \DB::rollback();
+                        return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
+                    }catch (\App\Repository\Exception\SaveException $e) {
+                       \DB::rollback(); 
+                        return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
+                    }
+                }
+
+            }
+            if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
+                $deleteds = [];
+                foreach ($request->input('old_attachments') as $key => $attach) {
+                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
+                        $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
+                        if($attachment){
+                            $attachment->delete();
+                            $deleteds[] = $attachment->getKey();
+                        }
+                    }
+                }
+               
+            }                
+            \DB::commit(); 
+            return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('well.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
+        } catch (\App\Repository\Exception\ValidatorException $e) {
+            \DB::rollback();
+           return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
+        }
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $model = $this->repository->whereKey($id)->first();
+        if(request()->wantsJson()) {            
+            $d =  $model->delete($id);
+            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
+        }
+        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
+    }
+
+    public function serveAttachment($id, $aid)
+    {
+        
+        $model = $this->repository->whereKey($id)->first();
+      
+        if ($model) {
+            
+            $attachment = $model->attachments()->whereKey($aid)->first();
+            if($attachment){
+                return $attachment->serve();
+            }else{
+                
+            }
+        }else{
+            
+            return response()->json(['error'], 401);    
+        }
+
+        
+    }
+}

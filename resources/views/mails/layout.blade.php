@@ -1,0 +1,3 @@
+<div>
+	@yield('body')
+</div>
