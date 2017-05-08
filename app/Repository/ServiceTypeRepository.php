@@ -4,6 +4,7 @@ class ServiceTypeRepository extends Base{
 
 	protected $fillable = [
 		'name',
+		'business_unit_id'
 	];
 	public function __construct()	
 	{	
@@ -11,7 +12,8 @@ class ServiceTypeRepository extends Base{
 	}
 	public function getRules($input){
 		return [
-			'name'=>'required'
+			'name'=>'required',
+			'business_unit_id'=>"required|exists_eloquent:\\App\\ORM\\BusinessUnit",
 		];
 	}
 }

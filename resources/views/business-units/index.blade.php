@@ -44,8 +44,8 @@
 						<thead>
 							<tr>
 								<th>ID</th>
-								<th><a href="{{ $sortLinks['businessUnit.name']['url'] }}">Unidad de negocio<i class="fa fa-{{ $sortLinks['businessUnit.name']['type'] }}"></i></a></th>					
-								<th><a href="{{ $sortLinks['name']['url'] }}">Tipo de servicio<i class="fa fa-{{ $sortLinks['name']['type'] }}"></i></a></th>					
+								<th><a href="{{ $sortLinks['name']['url'] }}">Nombre <i class="fa fa-{{ $sortLinks['name']['type'] }}"></i></a></th>
+								
 								<th>Acciones</th>
 							</tr>
 						</thead>
@@ -53,8 +53,8 @@
 							@foreach ($models as $model)
 								<tr>
 									<td>{{{ $model->id }}}</td>
-									<td>{{{ $model->businessUnit->name }}}</td>						
-									<td>{{{ $model->name }}}</td>						
+									<td>{{{ $model->name }}}</td>
+									
 									<td>
 										<div class="btn-group">
 										  <button class="btn btn-primary">Acciones</button>
@@ -95,5 +95,4 @@
 @section('footer')	
     <script src="{{ asset('js/scripts/entity.js') }}"></script>
     <script src="{{ asset('js/scripts/crud-controller.js') }}"></script>
-    <script src="{{ asset('js/scripts/service-types-controller.js') }}"></script>
 @stop

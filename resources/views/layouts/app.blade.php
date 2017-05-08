@@ -56,7 +56,7 @@
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                                Ajustes<span class="caret"></span>
                             </a>
-                            <ul class="dropdown-menu" role="menu">
+                            <ul class="dropdown-menu multi-level" role="menu">
                                 <li>
                                     <a href="{{ route('user.index') }}" >
                                         Usuarios
@@ -106,16 +106,14 @@
                                     <a href="{{ route('client.index') }}" >
                                         Clientes
                                     </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('desviation.index') }}" >
-                                        Tipos de desviaci&oacute;n
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('service-type.index') }}" >
-                                        Tipos de servicio
-                                    </a>
+                                </li> 
+                                <li class="divider"></li>                               
+                                <li class="dropdown dropdown-submenu">
+                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tipos de servicio</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a href="{{ route('service-type.index') }}">Servicios</a></li>
+                                        <li><a href="{{ route('business-unit.index') }}">Unidades de negocios</a></li>                                        
+                                    </ul>
                                 </li>
                             </ul>
                         </li>

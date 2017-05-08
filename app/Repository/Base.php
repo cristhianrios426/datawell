@@ -11,6 +11,12 @@ class Base{
 	{	
 		$this->ORMClass = $ORMClass;
 	}
+
+	public function getModel(){
+		$className = $this->ORMClass;
+		$ob = new $className;
+		return $ob;
+	}
 	
 	public function setFillable($fillable){
 		$this->fillable = $fillable;
@@ -161,13 +167,14 @@ class Base{
     		$this->{$localScope}(...$args);
     	}else{
     		$r = $this->getQuery()->{$name}(...$args);
-    		if(in_array($name, ['first','count', 'get', 'paginate','max', 'find'])){
+    		if($r instanceof \Illuminate\Database\Eloquent\Builder){
+    			return $this;
+    		}else{
     			return $r;
     		}
-    	}
-    	return $this;
+    	}    	
     }
 
-    
+   
 
 }

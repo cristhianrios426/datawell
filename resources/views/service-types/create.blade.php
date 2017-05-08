@@ -9,17 +9,17 @@
         <div class="form-group"  container-new-unit style="display: none">
           <label >Nueva unidad de negocios</label>
           <div class="input-group">
-            <input class="form-control" id="exampleInputAmount" placeholder="Nombre de unidad negocio"> 
+            <input class="form-control" name="business_unit[name]" placeholder="Nombre de unidad negocio"> 
             <div title="Mostrar lista" cancel-new-unit class="input-group-addon btn btn-danger"><i class="glyphicon glyphicon-remove"></i></div> 
           </div>
         </div>
         <div class="form-group" container-select-unit  >
           <label >Unidad de negocios</label>
-          <select class="form-control" select-unit name="" id="">
+          <select class="form-control" select-unit name="business_unit_id" id="">
             <option value="">Selecciona</option>
             <option value="new">Crear nueva unidad de negocios</option>
             @foreach ($businessUnits as $businessUnit)
-              <option value="{{ $businessUnit->getKey() }}">{{ $businessUnit->name }}</option>
+              <option value="{{ $businessUnit->getKey() }}" {{{ ( $model->businessUnit && $businessUnit->getKey() == $model->businessUnit->getKey() ? 'selected' : '' ) }}} >{{ $businessUnit->name }}</option>
             @endforeach
           </select>
         </div>
@@ -27,7 +27,7 @@
       <div class="col-xs-6">
         <div class="form-group">
           <label >Nombre</label>
-          <input type="text" name="name" class="form-control" value="" >
+          <input type="text" name="name" class="form-control" value=" {{ $model->name }}" >
         </div>
       </div>      
     </div>

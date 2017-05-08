@@ -1,6 +1,6 @@
 <?php 
 namespace App\ORM;
-
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -152,6 +152,25 @@ class BaseModel extends Model{
 
     public function scopeWhereKey($q, $key){
         $q->where($q->getModel()->getTable().'.'.$q->getModel()->getKeyName(), $key);
+        return $q;
+    }
+
+  
+
+    public function scopeBelongsToJoin($q, $relation){
+        //$relation = $q->getRelation($relation);
+        $relation =  Relation::noConstraints(function () use ($relation, $q) {
+            $rel =  $q->getModel()->{$relation}();           
+            return $rel;
+        });
+        $rq = $relation->getRelationExistenceQuery($relation->getQuery()->applyScopes(), $q);
+        if(!count($q->getQuery()->columns)){
+            $q->select($q->getModel()->getTable().'.*');
+        }
+        $q->leftJoin($rq->getModel()->getTable(), function($join) use ($rq, $q, $relation){
+            //$join->where($rq->getModel()->getTable().'.'.$rq->getModel()->getKeyName(), $relation->foreignKey);
+            $join->mergeWheres($rq->getQuery()->wheres,$rq->getQuery()->bindings);
+        });
         return $q;
     }
 

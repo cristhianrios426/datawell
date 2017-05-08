@@ -41,6 +41,7 @@ Route::resource('area', 'AreaController');
 Route::resource('block', 'BlocksController');
 Route::resource('coordinate-sys', 'CoordinateSysController');
 Route::resource('client', 'ClientController');
+Route::resource('business-unit', 'BusinessUnitController');
 
 Route::get('service/attachment/{id}/{aid}', ['uses'=>'ServiceController@serveAttachment', 'as'=>'service.attachment']);
 Route::resource('service', 'ServiceController');

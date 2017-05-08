@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Repository\ServiceTypeRepository;
-use App\ORM\ServiceType as ServiceType;
+use App\Repository\BusinessUnitRepository;
+use App\ORM\ServiceType as Model;
 use App\ORM\BusinessUnit as BusinessUnit;
 class ServiceTypesController extends Controller
 {
 
     protected $repository;
-     public $classname;
+    public $classname;
     public $entityName;
     public $entitiesName;
     public function __construct(){
@@ -27,27 +28,35 @@ class ServiceTypesController extends Controller
 
     public function index(Request $request)
     {   
-            
+
+        \DB::enableQueryLog();            
 
         $query = $request->all();
-        $sorts = ['name'];
-        $sortLinks  = ServiceType::sortableLinks($query, $sorts);
-
-        $this->repository->with('businessUnit');
-
+        $sorts = ['name', 'businessUnit.name'];
+        $sortLinks  = Model::sortableLinks($query, $sorts);
+        $this->repository->select($this->repository->getModel()->getTable().'.*');
         if($request->has('term')){
             $this->repository->where(function($q) use ($request, $sorts){
-                $q->term($sorts, $request->input('term'))
+                $q
+                ->where('name' , 'LIKE' , '%'.$request->input('term').'%')
                 ->orWhereHas('businessUnit', function($q2) use ($request, $sorts){
-                    $q2->where('name' , 'LIKE' , '%'.$request->input('term').'%');
+                    $q2->where($q2->getModel()->getTable().'.name' , 'LIKE' , '%'.$request->input('term').'%');
                 });
             });            
         }
+        $this->repository->belongsToJoin('businessUnit');
         if($request->has('sort') && in_array($request->input('sort'), $sorts ) ){
-            $this->repository->orderBy($request->input('sort'), $request->input('sort_type', 'desc'));
-        } 
+            if($request->input('sort') == 'businessUnit.name'){
+                $joinTable = $this->repository->getRelation('businessUnit')->getRelated()->getTable();
+                $this->repository->orderBy($joinTable.'.name', $request->input('sort_type'));               
+            }else{
+                $this->repository->orderBy($request->input('sort'), $request->input('sort_type') );
+            }
+        }
+
+        $this->repository->with('businessUnit');
         $models = $this->repository->paginate(20);
-        if (request()->wantsJson()) {
+        if (request()->wantsJson()){
             return response()->json($models);
         }
         return view($this->entitiesName.'.index', compact('models', 'query', 'sortLinks'));
@@ -82,10 +91,30 @@ class ServiceTypesController extends Controller
 
     
     public function store(Request $request)
-    {
+    {   
 
-         try {
-            $this->repository->save((new $this->classname), $request->all());
+         $input = $request->all();
+        if(!$request->has('business_unit_id')){
+            return response()->json( ['messages'=>['messages'=> 'La unidad de negocios es obligatoria', 'type'=>'danger']] , 422);
+        }
+        
+        if($request->input('business_unit_id') == 'new'){
+           
+            $repositoryUnit = new BusinessUnitRepository();            
+            try {
+               $repositoryUnit->save((new BusinessUnit), $request->input('business_unit', []) );
+               $input['business_unit_id'] = $repositoryUnit->getEntity()->getKey();
+            } catch (\App\Repository\Exception\ValidatorException $e) {  
+                $m = $e->validator->messages()->all();              
+                array_unshift($m, 'Errores de unidad de negocios');
+                return response()->json( ['messages'=>['messages'=>array_values($m ), 'type'=>'danger']] , 422);
+            }
+        }
+
+        
+
+        try {
+            $this->repository->save((new Model), $input);
 
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success']] , 200);
 
@@ -128,12 +157,27 @@ class ServiceTypesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $input = $request->all();
+        if(!$request->has('business_unit_id')){
+            return response()->json( ['messages'=>['messages'=> 'La unidad de negocios es obligatoria', 'type'=>'danger']] , 422);
+        }
+        
+        if($request->input('business_unit_id') == 'new'){
+           
+            $repositoryUnit = new BusinessUnitRepository();            
+            try {
+               $repositoryUnit->save((new BusinessUnit), $request->input('business_unit', []) );
+               $input['business_unit_id'] = $repositoryUnit->getEntity()->getKey();
+            } catch (\App\Repository\Exception\ValidatorException $e) {  
+                $m = $e->validator->messages()->all();              
+                array_unshift($m, 'Errores de unidad de negocios');
+                return response()->json( ['messages'=>['messages'=>array_values($m ), 'type'=>'danger']] , 422);
+            }
+        }
 
         try {
-            $model = $this->repository->whereKey($id)->first();
-            //dd($model);
-            $this->repository->save($model, $request->all());
-
+            $model = $this->repository->whereKey($id)->first();            
+            $this->repository->save($model, $input);
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando'], 'type'=>'success']] , 200);
            
         } catch (\App\Repository\Exception\ValidatorException $e) {

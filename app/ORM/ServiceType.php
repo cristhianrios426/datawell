@@ -10,6 +10,6 @@ class ServiceType extends BaseModel
     protected $dates = ['deleted_at','created_at', 'updated_at'];
 
     public function businessUnit(){
-    	return $this->belongsTo(BusinessUnit::class, 'business_unit_id');
+    	return $this->belongsTo(BusinessUnit::class, 'business_unit_id')->withTrashed();
     }
 }

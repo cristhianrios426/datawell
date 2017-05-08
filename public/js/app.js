@@ -45,3 +45,14 @@ $.ajaxSetup({
         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
     }
 });
+
+(function($){
+	$(document).ready(function(){
+		$('body').on('click', 'ul.dropdown-menu [data-toggle=dropdown]', function(event) {
+			event.preventDefault(); 
+			event.stopPropagation(); 
+			$(this).parent().siblings().removeClass('open');
+			$(this).parent().toggleClass('open');
+		});
+	});
+})(jQuery);
