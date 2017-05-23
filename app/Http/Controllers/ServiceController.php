@@ -23,12 +23,14 @@ class ServiceController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
         $this->entityName ="service";
         $this->entitiesName ="services";
         \View::share ( 'entityName',  $this->entityName);
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'servicio');
         \View::share ( 'entitiesLabel', 'servicios');
         
@@ -59,10 +61,13 @@ class ServiceController extends Controller
 
 
     public function index(Request $request)
-    {   
+    {
+       // parent::index($request);   
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
+        
+        /**/
 
         if($request->has('term')){
             $this->repository->term($sorts, $request->input('term'));
@@ -223,15 +228,7 @@ class ServiceController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+    
 
 
     public function serveAttachment($id, $aid)

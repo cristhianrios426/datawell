@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\SectionRepository;
 use App\ORM\Section;
-class SectionsController extends Controller
+class SectionsController extends SettingsController
 {
 
     protected $repository;
@@ -14,12 +14,14 @@ class SectionsController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new SectionRepository();
         $this->classname = \App\ORM\Section::class;
 
         $this->entityName ="section";
         $this->entitiesName ="sections";
         \View::share ( 'entityName',  'section');
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'sección');
         \View::share ( 'entitiesLabel', 'secciones');
 
@@ -27,7 +29,8 @@ class SectionsController extends Controller
     }
 
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Section::sortableLinks($query, $sorts);
@@ -45,12 +48,35 @@ class SectionsController extends Controller
         return view('sections.index', compact('models', 'query', 'sortLinks'));
     }
 
-    public function create(Request $request){
-
-        if($request->ajax()){
-            return view('sections.create');    
+    
+    public function form($request, $id = null){
+        
+        if($id == null){
+            $model = new Section();            
+        }else{
+            $model = $this->repository->whereKey($id)->first();
+        }
+        if(!$model){
+            \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
         }
         
+        $data = array(            
+            'model'=>$model
+        );
+        return view($this->entitiesName.'.create', $data);
+    }
+    
+    public function create(Request $request){
+        return $this->form($request);
+    }
+
+    public function edit(Request $request, $id){
+        return $this->form($request, $id);       
     }
 
     
@@ -91,20 +117,6 @@ class SectionsController extends Controller
     }
 
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id){
-        
-        $model = $this->classname::whereKey($id)->first();
-
-        return view('sections.edit', compact('model'));
-       
-    }
 
 
     /**
@@ -137,13 +149,5 @@ class SectionsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make('sections.delete',['model'=>$model]);
-    }
+    
 }

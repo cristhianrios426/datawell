@@ -193,6 +193,6 @@
     <script src="{{ asset('vendors/fileuploader/compiled.js') }}"></script>
     <script src="{{ asset('js/scripts/jquery.datawelluploader.js') }}"></script>
     <script src="{{ asset('js/scripts/entity.js') }}"></script>  
-    <script src="{{ asset('js/scripts/jquery.sendajax.js') }}"></script>  
+      
     <script src="{{ asset('js/scripts/well-controller.js') }}"></script>  
 @stop

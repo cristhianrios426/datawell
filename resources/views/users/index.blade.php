@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <div class="container">
+	@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="panel panel-default">
@@ -62,9 +63,11 @@
 										  <button class="btn btn-primary">Acciones</button>
 										  <button data-toggle="dropdown" class="btn btn-primary dropdown-toggle"><span class="caret"></span></button>
 										  <ul class="dropdown-menu">
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-edit="{{{ $model->getKey() }}}">Editar</a></li>
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-remove="{{{ $model->getKey() }}}">Eliminar</a></li>								
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-show="{{{ $model->getKey() }}}">Detalles</a></li>								
+											@can('update', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-edit="{{{ $model->getKey() }}}">Editar</a></li> @endcan
+											@can('delete', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-remove="{{{ $model->getKey() }}}">Eliminar</a></li> @endcan
+								
+											@can('view', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-show="{{{ $model->getKey() }}}">Detalles</a></li> @endcan
+								
 										  </ul>
 										</div>
 									</td>
@@ -95,6 +98,9 @@
 </div>
 @stop()
 @section('footer')	
+	<link rel="stylesheet" href="{{ asset('vendors/bootstrap-select/dist/css/bootstrap-select.min.css') }}">
+    <script src="{{ asset('vendors/bootstrap-select/dist/js/bootstrap-select.js') }}"></script>
+    <script src="{{ asset('vendors/bootstrap-select/dist/js/i18n/defaults-'.\Config::get('app.locale').'.js') }}"></script>
     <script src="{{ asset('js/scripts/entity.js') }}"></script>
     <script src="{{ asset('js/scripts/user-controller.js') }}"></script>
 @stop

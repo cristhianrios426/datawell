@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\CuencaRepository as Repository;
 use App\ORM\Cuenca as Model;
-class CuencaController extends Controller
+use App\ORM\Location;
+class CuencaController extends SettingsController
 {
 
     protected $repository;
@@ -13,23 +14,28 @@ class CuencaController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
          $this->entityName ="cuenca";
         $this->entitiesName ="cuencas";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'cuenca');
         \View::share ( 'entitiesLabel', 'cuencas');
         \View::share ( 'entityName', $this->entityName);
     }
 
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
             
 
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
+
+        /**/
 
         if($request->has('term')){
             $this->repository->term($sorts, $request->input('term'));
@@ -44,13 +50,7 @@ class CuencaController extends Controller
         return view($this->entitiesName.'.index', compact('models', 'query', 'sortLinks'));
     }
 
-    public function create(Request $request){
-
-        if($request->ajax()){
-            return view($this->entitiesName.'.create');    
-        }
-        
-    }
+    
 
     
     public function store(Request $request)
@@ -98,13 +98,35 @@ class CuencaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit($id){
-        
-        $model = $this->classname::whereKey($id)->first();
 
-        return view($this->entitiesName.'.edit', compact('model'));
-       
+    public function form($request, $id = null){
+        if($id == null){
+            $model = new Model();            
+        }else{
+            $model = $this->repository->whereKey($id)->first();
+        }        
+        if(!$model){
+            \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
+        }
+        $data = array(
+            'locations'=>Location::fullTree()->orderBy('name')->get(),
+            'model'=>$model
+        );
+        return view($this->entitiesName.'.create', $data);
     }
+    public function create(Request $request){
+        return $this->form($request);
+    }
+
+    public function edit(Request $request, $id){
+        return $this->form($request, $id);       
+    }
+    
 
 
     /**
@@ -139,13 +161,5 @@ class CuencaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+    
 }

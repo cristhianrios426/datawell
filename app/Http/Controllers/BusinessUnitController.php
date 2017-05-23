@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\BusinessUnitRepository as Repository;
 use App\ORM\BusinessUnit as Model;
-class BusinessUnitController extends Controller
+class BusinessUnitController extends SettingsController
 {
 
     protected $repository;
@@ -13,20 +13,24 @@ class BusinessUnitController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
         $this->entityName ="business-unit";
         $this->entitiesName ="business-units";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'Unidad de negocios');
         \View::share ( 'entitiesLabel', 'Unidades de negocios');
         \View::share ( 'entityName', $this->entityName);
     }
 
     public function index(Request $request)
-    {   
-            
-
+    {
+        parent::index($request);   
+        
+        /**/
+        
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
@@ -44,12 +48,32 @@ class BusinessUnitController extends Controller
         return view($this->entitiesName.'.index', compact('models', 'query', 'sortLinks'));
     }
 
-    public function create(Request $request){
-
-        if($request->ajax()){
-            return view($this->entitiesName.'.create');    
+    public function form($request, $id = null){
+        if($id == null){
+            $model = new Model();            
+        }else{
+            $model = $this->repository->whereKey($id)->first();
         }
-        
+        if(!$model){
+            return 'adasasas';
+            \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
+        }
+        $data = array(            
+            'model'=>$model
+        );
+        return view($this->entitiesName.'.create', $data);
+    }
+    public function create(Request $request){
+        return $this->form($request);
+    }
+
+    public function edit(Request $request, $id){
+        return $this->form($request, $id);       
     }
 
     
@@ -89,24 +113,6 @@ class BusinessUnitController extends Controller
 
         return view($this->entitiesName.'.show', compact('model'));
     }
-
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id){
-        
-        $model = $this->classname::whereKey($id)->first();
-
-        return view($this->entitiesName.'.edit', compact('model'));
-       
-    }
-
-
     /**
      * Update the specified resource in storage.
      *
@@ -132,23 +138,5 @@ class BusinessUnitController extends Controller
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-
-        if(request()->wantsJson()) {       
-                 
-            $d =  $model->delete();
-            
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+   
 }

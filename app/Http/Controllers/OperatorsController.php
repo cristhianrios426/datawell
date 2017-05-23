@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\OperatorRepository;
 use App\ORM\Operator;
-class OperatorsController extends Controller
+class OperatorsController extends SettingsController
 {
     protected $repository;
 
@@ -14,22 +14,27 @@ class OperatorsController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new OperatorRepository();
         $this->classname = \App\ORM\Operator::class;
         
         $this->entityName ="operator";
         $this->entitiesName ="operators";
         \View::share ( 'entityName',  'operator');
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'operador');
         \View::share ( 'entitiesLabel', 'operadores');
         
     }
 
     public function index(Request $request)
-    {  
+    {
+        parent::index($request);  
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Operator::sortableLinks($query, $sorts);
+
+        /**/
 
         if($request->has('term')){
             $this->repository->term($sorts, $request->input('term'));
@@ -43,15 +48,35 @@ class OperatorsController extends Controller
         }
         return view($this->entitiesName.'.index', compact('models', 'query', 'sortLinks'));
     }
-
-    public function create(Request $request){
-
-        if($request->ajax()){
-            return view($this->entitiesName.'.create');    
+    
+    public function form($request, $id = null){
+        
+        if($id == null){
+            $model = new Operator();            
+        }else{
+            $model = $this->repository->whereKey($id)->first();
+        }
+        if(!$model){
+            \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
         }
         
+        $data = array(            
+            'model'=>$model
+        );
+        return view($this->entitiesName.'.create', $data);
+    }
+    public function create(Request $request){
+        return $this->form($request);
     }
 
+    public function edit(Request $request, $id){
+        return $this->form($request, $id);       
+    }
     
     public function store(Request $request)
     {
@@ -92,22 +117,6 @@ class OperatorsController extends Controller
 
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id){
-        
-        $model = $this->classname::whereKey($id)->first();
-
-        return view($this->entitiesName.'.edit', compact('model'));
-       
-    }
-
-
-    /**
      * Update the specified resource in storage.
      *
      * @param  $this->classnameUpdateRequest $request
@@ -139,13 +148,5 @@ class OperatorsController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+    
 }

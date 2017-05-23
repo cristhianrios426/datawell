@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\ClientRepository as Repository;
 use App\ORM\Client as Model;
-class ClientController extends Controller
+class ClientController extends SettingsController
 {
 
     protected $repository;
@@ -14,12 +14,14 @@ class ClientController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
         $this->entityName ="client";
         $this->entitiesName ="clients";
         \View::share ( 'entityName',  $this->entityName);
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'cliente');
         \View::share ( 'entitiesLabel', 'clientes');
 
@@ -27,7 +29,11 @@ class ClientController extends Controller
     }
 
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
+
+        /**/
+
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
@@ -46,7 +52,8 @@ class ClientController extends Controller
     }
 
     public function create(Request $request){
-
+       
+        \Auth::user()->canOrFail('create', $this->classname);
         if($request->ajax()){
             return view($this->entitiesName.'.create');    
         }
@@ -101,7 +108,10 @@ class ClientController extends Controller
     public function edit($id){
         
         $model = $this->classname::whereKey($id)->first();
-
+        if(!$model){
+            abort(404);
+        }
+        \Auth::user()->canOrFail('update', $model);
         return view($this->entitiesName.'.edit', compact('model'));
        
     }
@@ -137,13 +147,5 @@ class ClientController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+    
 }

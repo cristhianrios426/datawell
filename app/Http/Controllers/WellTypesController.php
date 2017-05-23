@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\WellTypeRepository;
 use App\ORM\WellType;
-class WellTypesController extends Controller
+class WellTypesController extends SettingsController
 {
 
     protected $repository;
@@ -14,20 +14,23 @@ class WellTypesController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new WellTypeRepository();
         $this->classname = \App\ORM\WellType::class;
 
          $this->entityName ="well-type";
         $this->entitiesName ="well-types";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'tipo de pozo');
         \View::share ( 'entitiesLabel', 'tipos de pozo');
         \View::share ( 'entityName', $this->entityName);
     }
 
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
             
-
+        /**/
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = WellType::sortableLinks($query, $sorts);

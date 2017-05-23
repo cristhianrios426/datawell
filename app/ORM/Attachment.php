@@ -5,6 +5,9 @@ class Attachment extends BaseModel
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 
+    const STATE_DRAFT = 1;
+    const STATE_APPROVING = 2;
+    const STATE_ACTIVE = 4;
 
 	
     protected $fillable = [];

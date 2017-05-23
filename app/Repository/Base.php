@@ -1,5 +1,7 @@
 <?php 	
 namespace App\Repository;
+use App\Util\Exception\AuthorizeException;
+use App\Repository\Exception\ValidatorException;
 class Base{
 	protected $ORMClass;
 	protected $query = NULL;
@@ -87,7 +89,6 @@ class Base{
 				}
 			}	
 		}
-
 		return $input;
 	}
 
@@ -111,7 +112,7 @@ class Base{
 		return $input;
 	}
 	
-	public function save($entity = NULL, array $input = []){
+	public function save($entity = NULL, array $input = [], $save = true){
 		if($entity == null){
 			$className = $this->ORMClass;
 			$entity = new $className;
@@ -129,9 +130,29 @@ class Base{
 		}
 
 		foreach ($attributes as $key => $value) {
+			$attributes[$key] = $attributes[$key] == NULL ? "" : $attributes[$key];
+		}
+
+		foreach ($attributes as $key => $value) {
 			$this->entity->setAttribute($key , $value);
 		}
-		$this->entity->save();
+		$user  = \Auth::user();
+		if($this->entity->exists){
+			$permission = 'update';
+		}else{
+			$permission = 'create';
+		}
+		try {
+			$user->canOrFail($permission, $this->entity);
+		} catch (Exception $e) {			
+			$v = \Validator::make(['f'=>''],['f'=>'required'], ['f.required'=>$e->getMessage()]);	
+			$v->fails();
+			throw new ValidatorException($v);
+		}
+		if($save){
+			$this->entity->save();	
+		}
+		
 	}
 
 	public function scopeByUser($q, $user){

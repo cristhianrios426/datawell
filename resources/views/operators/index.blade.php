@@ -2,6 +2,7 @@
 @section('content')
 <div class="container">
 	<div class="row">
+		@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 		<div class="col-xs-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -12,9 +13,9 @@
 									<h4>{{{ ucfirst($entitiesLabel) }}}</h4>
 								</div>
 								<div class="pull-right">
-									<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
+									@can('create', $classname)<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
 										<i class="fa fa-plus"  aria-hidden="true"></i> Crear  {{{ $entityLabel }}}
-									</button>
+									</button>@endcan
 								</div>
 							</div>
 						</div>
@@ -57,9 +58,11 @@
 										  <button class="btn btn-primary">Acciones</button>
 										  <button data-toggle="dropdown" class="btn btn-primary dropdown-toggle"><span class="caret"></span></button>
 										  <ul class="dropdown-menu">
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-edit="{{{ $model->getKey() }}}">Editar</a></li>
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-remove="{{{ $model->getKey() }}}">Eliminar</a></li>								
-											<li><a href="#" data-toggle="modal" data-target="#modal-model" data-show="{{{ $model->getKey() }}}">Detalles</a></li>								
+											@can('update', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-edit="{{{ $model->getKey() }}}">Editar</a></li> @endcan
+											@can('delete', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-remove="{{{ $model->getKey() }}}">Eliminar</a></li> @endcan
+								
+											@can('view', $model) <li><a href="#" data-toggle="modal" data-target="#modal-model" data-show="{{{ $model->getKey() }}}">Detalles</a></li> @endcan
+								
 										  </ul>
 										</div>
 									</td>

@@ -15,13 +15,13 @@
 			return false;
 
 		});
-
 	});
-	$('form').sendAjax({
+	$('form[form-revision]').sendAjax({
+
 		send:function(){		
-			
+			$('#select-assigned').modal('hide');
 			var data = this.$form.serialize();
-			var url = this.$form[0].action;
+			var url = this.$form.attr('action');
 			var method = this.$form.attr('method');
 			
 			var jqXHR = $.ajax({
@@ -30,11 +30,48 @@
 				method:method,
 				dataType:'json'
 			});
-			window.CRUD.loading(true);
+			window.loading(true);
 			jqXHR
-				.then(function(){window.CRUD.loading(false);}, function(){window.CRUD.loading(false);});
+				.then(function(){window.loading(false);}, function(){window.loading(false);});
 			this.response(jqXHR);
 			return jqXHR
 		}
 	});
+	$('form[form-save]').sendAjax({
+
+		send:function(){
+			var data = this.$form.serialize();
+			var url = this.$form.attr('action');
+			var method = this.$form.attr('method');
+			
+			var jqXHR = $.ajax({
+				data:data,
+				url:url,
+				method:method,
+				dataType:'json'
+			});
+			window.loading(true);
+			jqXHR
+				.then(function(){window.loading(false);}, function(){window.loading(false);});
+			this.response(jqXHR);
+			return jqXHR
+		}
+	});
+	$('*[assigned-modal]').on('click', function(){		
+		if($('#save-well').valid()){
+			$('#assigned_to').addClass('required');
+			$('#select-assigned').modal('show');
+			$('#select-assigned').one('hidden.bs.modal', function(){
+				$('#assigned_to').removeClass('required');
+			});
+		}
+	})
+	setTimeout(function() {
+		$('select[location-ref]').locationSelect({
+			run:true,
+			dependsSelector:'select[location-dep-ref]'
+		});
+	}, 500);
+	$('*[selectpicker]').selectpicker();
 })(window, jQuery);
+

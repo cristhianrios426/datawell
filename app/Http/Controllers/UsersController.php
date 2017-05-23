@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\ORM\User;
 use App\Repository\UserRepository;
 use \App\ORM\IdeType;
+use \App\ORM\Location;
+use \App\ORM\Client;
 use \App\Repository\Exception\ValidatorException;
-class UsersController extends Controller
+class UsersController extends SettingsController
 {
 
     protected $repository;
@@ -15,11 +17,12 @@ class UsersController extends Controller
     public $entityName;
     public $entitiesName;
     public function __construct(){
+        parent::__construct();
+        
         $this->repository = new UserRepository();
-
-
         $this->entityName ="operator";
         $this->entitiesName ="operators";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'Usuario');
         \View::share ( 'entitiesLabel', 'Usuarios');
     }
@@ -29,13 +32,14 @@ class UsersController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
             
 
         $query = $request->all();
         $sorts = ['name', 'email', 'ide'];
         $sortLinks  = User::sortableLinks($query, $sorts);
-
+        /**/
         
         // $table = $q->getModel()->getTable();
         // if($request->has('term')){
@@ -70,7 +74,9 @@ class UsersController extends Controller
             \App::abort(404);
         }
         $types = \App\ORM\IdeType::all();
-        return view('users.edit', compact('model','types'));
+        $locations = Location::fullTree()->orderBy('name')->get();
+        $clients = Client::all();
+        return view('users.edit', compact('model','types', 'locations', 'clients'));
     }
 
     /**
@@ -116,8 +122,6 @@ class UsersController extends Controller
         }
         \DB::commit();
         return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success']] , 200);
-
-        
     }
 
 

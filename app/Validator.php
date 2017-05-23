@@ -1,8 +1,19 @@
 <?php 
 namespace App;
 use Illuminate\Validation\Validator as IlluminateValidator;
+use App\ORM\Location;
 class Validator extends IlluminateValidator{
 	
+	public function validateClosure($attribute, $value, $parameters){
+	    $closure = $parameters[0];
+	   	$r =  call_user_func($closure, $attribute, $value);	   	
+	   	return $r;
+	}
+
+	public function validateFail($attribute, $value, $parameters){
+		return false;
+	}
+
 	public function validateUniqueEloquent($attribute, $value, $parameters){
 	    $class = $parameters[0];
 	    $model = new $parameters[0];
@@ -15,6 +26,10 @@ class Validator extends IlluminateValidator{
 	    }
 	}
 
+	public function validateDifferentThan($attribute, $value, $parameters){
+		return $value != $parameters[0];
+
+	}
 	public function validateUniqueEloquentOrValue($attribute, $value, $parameters){
 	    $class = $parameters[0];
 	    $field = $parameters[1] ;
@@ -33,18 +48,29 @@ class Validator extends IlluminateValidator{
 	}
 
 	public function validateExistsEloquent($attribute, $value, $parameters){
-
 		//dd($parameters);
 	    $class = $parameters[0];
 	    $field = isset($parameters[1]) ? $parameters[1] : with(new $class())->getKeyName();
+	    $closure = isset($parameters[1]) ? $parameters[1] : null;
         $q = call_user_func($class.'::where',$field, '=', $value);
+        if($closure){
+        	$q = call_user_func($closure,$q);
+        }
         $count = $q->count();
         if($count > 0){
             return true;
         }else{
             return false;
         }
-	   
+	}
+
+	public function validateInLocation($attribute, $value, $parameters){
+		$model = $parameters[0];
+		$location = $parameters[1];
+		if(!$model){
+			return false;
+		}
+		return $model->inLocation($location);
 	}
 
 	public function validateJsonSchema($attribute, $value, $parameters){

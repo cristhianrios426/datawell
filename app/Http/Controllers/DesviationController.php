@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\DesviationRepository as Repository;
 use App\ORM\Desviation as Model;
-class DesviationController extends Controller
+class DesviationController extends SettingsController
 {
 
     protected $repository;
@@ -13,19 +13,23 @@ class DesviationController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
          $this->entityName ="desviation";
         $this->entitiesName ="desviations";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'tipo de desviación');
         \View::share ( 'entitiesLabel', 'tipos de desviación');
         \View::share ( 'entityName', $this->entityName);
     }
 
     public function index(Request $request)
-    {   
-            
+    {
+        parent::index($request);   
+        
+        /**/
 
         $query = $request->all();
         $sorts = ['name'];
@@ -46,6 +50,7 @@ class DesviationController extends Controller
 
     public function create(Request $request){
 
+        \Auth::user()->canOrFail('create', $this->classname);
         if($request->ajax()){
             return view($this->entitiesName.'.create');    
         }
@@ -98,10 +103,13 @@ class DesviationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit($id){
+    public function edit($id){        
         
-        $model = $this->classname::whereKey($id)->first();
-
+        $model = $this->repository->whereKey($id)->first();
+        if(!$model){
+            abort(404);
+        }
+        \Auth::user()->canOrFail('update', $model);
         return view($this->entitiesName.'.edit', compact('model'));
        
     }
@@ -139,13 +147,5 @@ class DesviationController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+   
 }

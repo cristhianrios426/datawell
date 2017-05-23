@@ -37,6 +37,8 @@
 			type:method,
 			dataType:'json'
 		});
+		window.loading(true);
+		jqXHR.then( function(){ window.loading(false) }, function(){ window.loading(false) });
 		this.response(jqXHR);
 		return jqXHR
 	}
@@ -59,7 +61,11 @@
 						document.location.href = data.redirect;
 					},timeout);
 				}else if(data.reload){
-					document.location.reload();
+					var timeout = data.delay || 0;
+					setTimeout(function(){
+						document.location.reload();
+					},timeout);
+					
 				}
 			}			
 		},function(jqXHR){

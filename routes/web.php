@@ -13,15 +13,14 @@
 
 
 
-
 Route::get('test', function(){
-	$user = \App\ORM\User::where('email', 'cristhianrios426@gmail.com')->first();
-	if($user){
-		$user->email = 'gi.grazt@gmail.com';
-		$user->save();
-	}
+	$user = \Auth::user();
+	var_dump($user->can('create',App\ORM\Location::class));
+	$l = new App\ORM\Location;
+	$l->location_id =3;
+	var_dump($user->can('create', $l));
 });
-
+Route::post('location-select', ['uses'=> 'HomeController@locationSelect']);
 
 Route::get('/app', 'BackController@index');
 
@@ -42,11 +41,15 @@ Route::resource('block', 'BlocksController');
 Route::resource('coordinate-sys', 'CoordinateSysController');
 Route::resource('client', 'ClientController');
 Route::resource('business-unit', 'BusinessUnitController');
+Route::resource('location', 'LocationsController');
+
+Route::post('send-contact', ['uses'=>'ContactCenter@send', 'as'=>'send-contact']);
 
 Route::get('service/attachment/{id}/{aid}', ['uses'=>'ServiceController@serveAttachment', 'as'=>'service.attachment']);
 Route::resource('service', 'ServiceController');
 
 Route::get('well/attachment/{id}/{aid}', ['uses'=>'WellController@serveAttachment', 'as'=>'well.attachment']);
+Route::post('well/{id}/revision',[ 'as'=>'well-revision', 'uses'=>'WellController@revision']);
 Route::resource('well', 'WellController');
 
 Route::any('/upload-file', 'HomeController@uploadTemporal');
@@ -54,3 +57,5 @@ Route::get('/upload-file/{file}',['uses'=> 'HomeController@serveTemporal', 'as' 
 
 Auth::routes();
 Route::get('/', ['uses'=> 'HomeController@index', 'as'=>'index']);
+
+

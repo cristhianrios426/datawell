@@ -1,6 +1,7 @@
 <?php 
 namespace App\Repository;
 use App\ORM\User;
+use App\ORM\Location;
 class UserRepository extends Base{
 
 	protected $fillable = [
@@ -15,13 +16,16 @@ class UserRepository extends Base{
 		'job_cell',
 		'job_address',
 		'state',
-		'role_id'
+		'role_id',
+		'location_id',
+		'client_id'
 	];
 	public function __construct()	
 	{	
 		$this->ORMClass = (string) User::class;
 	}
 	public function getAttributesNames($input){
+
 		$attrs = parent::getAttributesNames($input);
 		$nattrs = [
 			'ide_type'=>'tipo de identificación',
@@ -56,23 +60,32 @@ class UserRepository extends Base{
 		$rules['role_id'] = [];
 		$rules['role_id'][] = 'required';
 		$rules['role_id'][] = ['in', User::ROLE_ADMIN,User::ROLE_ENG,User::ROLE_SUPER,User::ROLE_CLIENT,User::ROLE_MANAGER];
+
+		if(isset($input['role_id']) && $input['role_id'] == User::ROLE_CLIENT){
+			
+			$rules['client_id'] = "required|exists_eloquent:\\App\\ORM\\Client";
+		}
+		$rules['location_id'] = "required|exists_eloquent:".Location::class;
 		return $rules;
 	}
 
+	
+
 	public function activationUpdate($input){
 		$rules = $this->getRules($input);
-		$deleteRules = ['email', 'state', 'role_id'];
-		foreach ($deleteRules as $key => $value) {
-			if(isset($rules[$key])){
-				unset($rules[$key]);
+		$deleteRules = ['email', 'state', 'role_id','location_id'];
+		foreach ($deleteRules as  $rule) {
+			if(isset($rules[$rule])){
+				unset($rules[$rule]);
 			}
 		}
-		$deleteInput = ['email', 'state', 'role_id'];
+		$deleteInput = ['email', 'state', 'role_id', 'location_id'];
 		foreach ($deleteInput as $key => $value) {
-			if(isset($input[$key])){
-				unset($input[$key]);
+			if(isset($input[$value])){
+				unset($input[$value]);
 			}
 		}
+
 
 		$rules['ide'][] = ['required'];
 		$rules['ide_type'][] = ['required'];
@@ -95,7 +108,8 @@ class UserRepository extends Base{
 		$attrsNames['job_cell'] = 'teléfono celular';
 		$attrsNames['job_address'] = 'dirección de empresa';
 		$attrsNames['password'] = 'contraseña';
-		
+
+
 		if(isset($rules['role_id'])){
 			
 			unset($rules['role_id']);

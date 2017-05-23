@@ -100,19 +100,7 @@
 		this.entity = new Entity(entityName);
 	};
 
-	window.CRUD.loading = function(bool){
-		if(bool){
-			$('[loader]').addClass('init-loading');
-			setTimeout(function(){
-				$('[loader]').addClass('loading');
-			},100);
-		}else{
-			$('[loader]').removeClass('loading');
-			setTimeout(function(){
-				$('[loader]').removeClass('init-loading');
-			},100);
-		}
-	}
+	
 
 	window.CRUD.prototype.setEntity = function(entity){
 		this.entity = entity || new window.Entity(this.entityName);
@@ -121,32 +109,36 @@
 	window.CRUD.prototype.edit = function($element){
 		var deferred = $.Deferred();
 		var self = this;
-		window.CRUD.loading(true);
-		this.entity.edit()
-			.then(function(html){
+		window.loading(true);
+		var jqXHR = this.entity.edit()
+		jqXHR.then(function(html){
 				$element.html(html);
-
 				self.setView($element);
-				window.CRUD.loading(false);				
+				window.loading(false);				
 				deferred.resolve();
 			}, function(){
-				window.CRUD.loading(false);		
+				if(jqXHR.status !=  500) {$element.html(jqXHR.responseText);}
+				deferred.reject(jqXHR.responseText);
+				window.loading(false);		
 			});
 		return deferred.promise();
 	};
 
-	window.CRUD.prototype.create = function($element){
+	window.CRUD.prototype.create = function($element, config){
 		var deferred = $.Deferred();
+		var config = config || {};
 		var self = this;
-		window.CRUD.loading(true);
-		this.entity.create()
-			.then(function(html){
+		window.loading(true);
+		var jqXHR = this.entity.create()
+		jqXHR.then(function(html){
 				$element.html(html);
 				self.setView($element);
-				window.CRUD.loading(false);				
+				window.loading(false);				
 				deferred.resolve();
 			}, function(){
-				window.CRUD.loading(false);
+				if(jqXHR.status !=  500) {$element.html(jqXHR.responseText);}
+				deferred.reject(jqXHR.responseText);
+				window.loading(false);		
 			});
 		return deferred.promise();
 	};
@@ -154,15 +146,15 @@
 	window.CRUD.prototype.show = function($element){
 		var deferred = $.Deferred();
 		var self = this;
-		window.CRUD.loading(true);
+		window.loading(true);
 		this.entity.show()
 			.then(function(html){
 				$element.html(html);
 				self.setView($element);
-				window.CRUD.loading(false);				
+				window.loading(false);				
 				deferred.resolve();
 			}, function(){
-				window.CRUD.loading(false);
+				window.loading(false);
 			});
 		return deferred.promise();
 	};
@@ -170,15 +162,17 @@
 	window.CRUD.prototype.delete = function($element){
 		var deferred = $.Deferred();
 		var self = this;
-		window.CRUD.loading(true);
-		this.entity.delete()
+		window.loading(true);
+		var jqXHR = this.entity.delete();
+		jqXHR
 			.then(function(html){
 				$element.html(html);
 				self.setView($element,{'method':'destroy'});
-				window.CRUD.loading(false);				
+				window.loading(false);				
 				deferred.resolve();
 			}, function(){
-				window.CRUD.loading(false);
+				if(jqXHR.status !=  500) {$element.html(jqXHR.responseText);}
+				window.loading(false);
 			});
 		return deferred.promise();
 	};
@@ -186,13 +180,13 @@
 	window.CRUD.prototype.save = function(data){
 		var deferred = $.Deferred();
 		var self = this;
-		window.CRUD.loading(true);
+		window.loading(true);
 		this.entity.save({data:data})
 			.then(function(){
-				window.CRUD.loading(false);
+				window.loading(false);
 				deferred.resolve();
 			}, function(){
-				window.CRUD.loading(false);		
+				window.loading(false);		
 			});
 		return deferred.promise();
 	};
@@ -220,7 +214,7 @@
 					dataType: 'json'
 				});
 			}
-			window.CRUD.loading(true);
+			window.loading(true);
 			promise
 				.then(function(data){
 					$element.find('*[alert]').each(function(){
@@ -232,7 +226,7 @@
 						}
 					});
 					document.location.reload();
-					window.CRUD.loading(false);
+					window.loading(false);
 				}, function(xhr){
 					var data = xhr.responseJSON;					
 					$element.find('*[alert]').each(function(){
@@ -244,7 +238,7 @@
 
 						}
 					});
-					window.CRUD.loading(false);
+					window.loading(false);
 				});
 		};
 

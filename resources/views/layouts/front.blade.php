@@ -60,7 +60,9 @@
         </nav>
         @yield('content')
     </div>
-    <script src="{{ asset('js/app.js?time='.time()) }}"></script>
+    <script src="{{ asset('js/app.js') }}"></script>
+    <script src="{{ asset('js/scripts/jquery.sendajax.js') }}"></script>
+    <script src="{{ asset('js/boot.js?time='.time()) }}"></script>
     @yield('footer')
 </body>
 </html>

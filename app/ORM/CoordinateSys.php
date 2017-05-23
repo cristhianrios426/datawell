@@ -1,6 +1,6 @@
 <?php
 namespace App\ORM;
-class CoordinateSys extends BaseModel
+class CoordinateSys extends Setting
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 	

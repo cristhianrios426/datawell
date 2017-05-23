@@ -24,6 +24,6 @@
 @section('footer')  
     <script src="{{ asset('vendors/validate/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('vendors/validate/localization/messages_'.config('app.locale').'.min.js') }}"></script>
-    <script src="{{ asset('js/scripts/jquery.sendajax.js') }}"></script>
+    
     <script src="{{ asset('js/scripts/activation.js') }}"></script>
 @stop

@@ -7,7 +7,7 @@ use App\Repository\ServiceTypeRepository;
 use App\Repository\BusinessUnitRepository;
 use App\ORM\ServiceType as Model;
 use App\ORM\BusinessUnit as BusinessUnit;
-class ServiceTypesController extends Controller
+class ServiceTypesController extends SettingsController
 {
 
     protected $repository;
@@ -15,21 +15,26 @@ class ServiceTypesController extends Controller
     public $entityName;
     public $entitiesName;
     public function __construct(){
+        parent::__construct();
         $this->repository = new ServiceTypeRepository();
         $this->classname = ServiceType::class;
 
         $this->entityName ="service-type";
         $this->entitiesName ="service-types";
         \View::share ( 'entityName', $this->entityName);
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'tipo de servicio');
         \View::share ( 'entitiesLabel', 'tipos de servicio');
 
     }
 
     public function index(Request $request)
-    {   
+    {
+        parent::index($request);   
 
-        \DB::enableQueryLog();            
+        \DB::enableQueryLog();
+
+        /**/
 
         $query = $request->all();
         $sorts = ['name', 'businessUnit.name'];
@@ -70,6 +75,11 @@ class ServiceTypesController extends Controller
         }
         if(!$model){
             \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
         }
 
         $data = array(        
@@ -157,6 +167,7 @@ class ServiceTypesController extends Controller
      */
     public function update(Request $request, $id)
     {
+        
         $input = $request->all();
         if(!$request->has('business_unit_id')){
             return response()->json( ['messages'=>['messages'=> 'La unidad de negocios es obligatoria', 'type'=>'danger']] , 422);
@@ -194,13 +205,5 @@ class ServiceTypesController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
+
 }

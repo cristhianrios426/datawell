@@ -29,9 +29,9 @@
 				method:method,
 				dataType:'json'
 			});
-			window.CRUD.loading(true);
+			window.loading(true);
 			jqXHR
-				.then(function(){window.CRUD.loading(false);}, function(){window.CRUD.loading(false);});
+				.then(function(){window.loading(false);}, function(){window.loading(false);});
 			this.response(jqXHR);
 			return jqXHR
 		}

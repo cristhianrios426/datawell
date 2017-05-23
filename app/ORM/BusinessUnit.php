@@ -1,7 +1,7 @@
 <?php
 namespace App\ORM;
 //use ServiceType;
-class BusinessUnit extends BaseModel
+class BusinessUnit extends Setting
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 	

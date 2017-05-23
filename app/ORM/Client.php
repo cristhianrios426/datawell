@@ -1,6 +1,6 @@
 <?php
 namespace App\ORM;
-class Client extends BaseModel
+class Client extends Setting
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 	

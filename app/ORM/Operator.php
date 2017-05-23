@@ -1,6 +1,6 @@
 <?php
 namespace App\ORM;
-class Operator extends BaseModel
+class Operator extends Setting
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 	

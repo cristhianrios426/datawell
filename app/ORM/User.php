@@ -1,17 +1,26 @@
 <?php
 namespace App\ORM;
-use Illuminate\Auth\Authenticatable as AuthenticatableEloquentTrait;
+
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use App\Util\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-use \Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Auth\Passwords\CanResetPassword as CanResetPasswordTrait;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 use App\Notifications\ResetPassword;
 
-class User extends BaseModel implements AuthenticatableContract , CanResetPasswordContract
+class User extends Setting implements AuthenticatableContract , CanResetPasswordContract, AuthorizableContract
 {
-	use Notifiable , SoftDeletes, AuthenticatableEloquentTrait, CanResetPasswordTrait;
-
+	use Notifiable , 
+        SoftDeletes,
+        Authorizable,
+        Authenticatable, 
+        CanResetPassword,
+        LocationTrait;
 	const ACTIVE = 1;
 	const INACTIVE = 2;
 	const PENDING = 3;
@@ -19,6 +28,7 @@ class User extends BaseModel implements AuthenticatableContract , CanResetPasswo
 	const RENEW_ACTIVATION = 1;
 	const GENERATE_ACTIVATION = 2;
 
+    const ROLE_SUPERADMIN = 0;
     const ROLE_ADMIN = 1;
     const ROLE_ENG = 2;
     const ROLE_SUPER = 3;
@@ -27,6 +37,30 @@ class User extends BaseModel implements AuthenticatableContract , CanResetPasswo
 
     protected $fillable = [];
     protected $dates = ['deleted_at','created_at', 'updated_at'];
+    
+    public function isSuperAdmin(){ 
+        return $this->role_id == static::ROLE_SUPERADMIN; 
+    }
+    public function isAdmin(){ 
+        return $this->role_id == static::ROLE_ADMIN; 
+    }
+    public function isEngineer(){ 
+        return $this->role_id == static::ROLE_ENG; 
+    }
+    public function isSupervisor(){ 
+        return $this->role_id == static::ROLE_SUPER; 
+    }
+    public function isClient(){ 
+        return $this->role_id == static::ROLE_CLIENT; 
+    }
+    public function isManager(){ 
+        return $this->role_id == static::ROLE_MANAGER; 
+    }
+
+    public function scopeIsSupervisor($q){ 
+        return $q->where('role_id', static::ROLE_SUPER);
+    }
+
 
     public function sendActivationCode($activation){
     	

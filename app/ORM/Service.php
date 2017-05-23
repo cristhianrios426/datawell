@@ -28,4 +28,11 @@ class Service extends BaseModel
     public function routeToAttachment($id){
         return route('service.attachment', ['id'=>$this->getKey(), 'aid'=>$id]);
     }
+
+    public function scopeFilterUser($q, $user){
+        if($user->isClient()){
+            $q->where('client_id', $user->getKey());
+        }
+        return $q;
+    }
 }

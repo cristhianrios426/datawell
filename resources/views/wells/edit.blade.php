@@ -39,8 +39,7 @@
         </div>
         <div class="col-xs-12 col-sm-6">
             <div class="form-group">
-                <label >Sistema de coordenadas</label>
-                
+                <label >Sistema de coordenadas</label>                
             </div>
         </div>
     </div>

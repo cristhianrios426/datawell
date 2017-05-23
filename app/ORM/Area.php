@@ -1,7 +1,9 @@
 <?php
 namespace App\ORM;
-class Area extends BaseModel
+use App\ORM\locationable;
+class Area extends Setting implements locationable
 {
+	use LocationTrait;
 	use \Illuminate\Database\Eloquent\SoftDeletes;
 	
     protected $fillable = [];

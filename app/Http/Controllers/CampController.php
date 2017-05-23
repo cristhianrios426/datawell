@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Repository\CampRepository as Repository;
 use App\ORM\Camp as Model;
-class CampController extends Controller
+use App\ORM\Location;
+class CampController extends SettingsController
 {
 
     protected $repository;
@@ -13,23 +14,26 @@ class CampController extends Controller
     public $entitiesName;
 
     public function __construct(){
+        parent::__construct();
         $this->repository = new Repository();
         $this->classname = Model::class;
 
          $this->entityName ="camp";
         $this->entitiesName ="camps";
+        \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'campo');
         \View::share ( 'entitiesLabel', 'campos');
         \View::share ( 'entityName', $this->entityName);
     }
 
     public function index(Request $request)
-    {   
-            
-
+    {
+        parent::index($request);   
         $query = $request->all();
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
+        
+        /**/
 
         if($request->has('term')){
             $this->repository->term($sorts, $request->input('term'));
@@ -44,14 +48,33 @@ class CampController extends Controller
         return view($this->entitiesName.'.index', compact('models', 'query', 'sortLinks'));
     }
 
-    public function create(Request $request){
-
-        if($request->ajax()){
-            return view($this->entitiesName.'.create');    
+    public function form($request, $id = null){
+        if($id == null){
+            $model = new Model();            
+        }else{
+            $model = $this->repository->whereKey($id)->first();
         }
-        
+        if(!$model){
+            \App::abort(404);
+        }
+        if($model->exists){
+            \Auth::user()->canOrFail('update', $model);
+        }else{
+            \Auth::user()->canOrFail('create', $this->classname);
+        }
+        $data = array(
+            'locations'=>Location::fullTree()->orderBy('name')->get(),
+            'model'=>$model
+        );
+        return view($this->entitiesName.'.create', $data);
+    }
+    public function create(Request $request){
+        return $this->form($request);
     }
 
+    public function edit(Request $request, $id){
+        return $this->form($request, $id);       
+    }
     
     public function store(Request $request)
     {
@@ -91,23 +114,7 @@ class CampController extends Controller
     }
 
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id){
-        
-        $model = $this->classname::whereKey($id)->first();
-
-        return view($this->entitiesName.'.edit', compact('model'));
-       
-    }
-
-
-    /**
+     /**
      * Update the specified resource in storage.
      *
      * @param  $this->classnameUpdateRequest $request
@@ -132,20 +139,4 @@ class CampController extends Controller
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int $id
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
-        }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
-    }
 }

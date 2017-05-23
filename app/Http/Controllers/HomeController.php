@@ -7,12 +7,14 @@ use App\ORM\Well as Model;
 use App\Repository\WellRepository;
 use App\ORM\CoordinateSys;
 use App\ORM\Area;
+use App\ORM\User;
 use App\ORM\Camp;
 use App\ORM\Cuenca;
 use App\ORM\Block;
 use App\ORM\WellType;
 use App\ORM\Desviation;
 use App\ORM\ServiceType;
+use App\ORM\Location;
 use App\ORM\Operator;
 use App\ORM\Attachment;
 
@@ -27,6 +29,7 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
+        
         if(\Auth::check()){
             return \Redirect::route('well.index');
         }else{
@@ -83,5 +86,52 @@ class HomeController extends Controller
             return response()->json($e->getContext(), 550);
         }       
         return response()->json($images);
+    }
+
+    public function locationSelect(Request $request){
+        $locals = [
+            'cuenca'=>Cuenca::vacum(),
+            'block'=>Block::vacum(),
+            'area'=>Area::vacum(),
+            'location'=>Location::vacum(),
+            'camp'=>Camp::vacum(),            
+            'supervisor'=>User::vacum()->isSupervisor(),            
+        ];
+        if($request->has('parent_id') && $request->has('list') &&  is_array($request->input('list'))){
+            $parent = $request->input('parent_id');
+            $parent = $parent != '' ? $parent : 0;
+            $location = Location::find($parent);            
+            
+            $list = array_unique($request->input('list'));
+            $response = [];
+            foreach ($list as $key => $value) {
+                if(isset($locals[$value])){
+                    $q = $locals[$value];
+                    $q->select(['id', 'name']);
+                    if($value == 'location'){
+                        if(!$location){
+                            $result = $q->where('parent_id', 0)->get();
+                        }else{
+                            $result  = $q->where('parent_id', $location->getKey())->get();
+                        }
+                        $response[$value] = $result; 
+                    }else{
+                        if(!$location){
+                            $result = $q->get();
+                        }else{
+                            $result  = $q->inLocation($location)->get();
+                        }
+                        $response[$value] = $result;   
+                    }
+                 
+                }
+                
+            }
+            $json = json_encode($response);            
+            //return \Response::make($json)->header('Content-Type', 'application/json');
+            return \Response::json($response);
+        }else{
+            return new \stdClass;
+        }
     }
 }

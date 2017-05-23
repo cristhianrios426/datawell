@@ -3,9 +3,11 @@ namespace App\ORM;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
-
+use DB;
+use App\ORM\User;
 class BaseModel extends Model{
 
+    
 	public function newCollection(array $models = [])
     {
         return new Collection($models);
@@ -155,8 +157,6 @@ class BaseModel extends Model{
         return $q;
     }
 
-  
-
     public function scopeBelongsToJoin($q, $relation){
         //$relation = $q->getRelation($relation);
         $relation =  Relation::noConstraints(function () use ($relation, $q) {
@@ -172,6 +172,19 @@ class BaseModel extends Model{
             $join->mergeWheres($rq->getQuery()->wheres,$rq->getQuery()->bindings);
         });
         return $q;
+    }
+
+    public function scopeFilterUser($q, $user){
+        return $q;
+    }
+
+    public function save(array $options = []){
+       DB::statement('SET FOREIGN_KEY_CHECKS = 0');
+        return parent::save();
+    }
+
+    public function createdBy(){
+        return $this->belongsTo(User::class, 'created_by');
     }
 
 }

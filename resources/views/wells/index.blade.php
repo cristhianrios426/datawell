@@ -4,6 +4,7 @@
 @stop
 @section('content')
 <div class="container">
+	@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 	<div class="row">
 		<div class="col-xs-12" style="margin-bottom: 22px">
 			<div class="panel panel-default">
@@ -39,8 +40,7 @@
 								<div class="col-xs-12">
 									<div class="pull-left">
 										<h4>{{{ 'Filtro de '.ucfirst($entitiesLabel) }}}</h4>
-									</div>
-									
+									</div>									
 								</div>
 							</div>
 						</div>
@@ -60,10 +60,9 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Tipo de servicio</label>
-										       		<select name="id_well_type[]" multiple class="selectpicker form-control">
-										       			
+										       		<select name="well_type_id[]" multiple class="selectpicker form-control">										       			
 										       			@foreach ($serviceTypes as $m)
-										       				<option  {{ ( isset($query['id_well_type']) && in_array($m->getKey(), $query['id_well_type']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option  {{ ( isset($query['well_type_id']) && in_array($m->getKey(), $query['well_type_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -71,15 +70,17 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Pa&iacute;s</label>
-										       		<select name="country" class="form-control">
-										       			<option value=""></option>
+										       		<select name="country" class="form-control" select-country >
+										       			@foreach ($locations as $location)
+										       				<option value="{{{ $location->getKey() }}}">{{{ $location->name }}}</option>
+										       			@endforeach
 										       		</select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Estado/Depart/Provincia</label>
-										       		<select name="state" class="form-control">
+										       		<select select-state location-list="location" name="state" class="form-control">
 										       			<option value=""></option>
 										       		</select>
 										      	</div>
@@ -87,7 +88,7 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Municipio</label>
-										       		<select name="city" class="form-control">
+										       		<select select-city location-list="location"  name="city" class="form-control">
 										       			<option value=""></option>
 										       		</select>
 										      	</div>
@@ -95,10 +96,10 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Regi&oacute;n</label>
-										       		<select name="id_area[]" multiple class=" selectpicker form-control">
+										       		<select name="area_id[]" depends-location location-list="area" multiple class=" selectpicker form-control">
 										       			
 										       			@foreach ($areas as $m)
-										       				<option  {{ ( isset($query['id_area']) && in_array($m->getKey(), $query['id_area']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option  {{ ( isset($query['area_id']) && in_array($m->getKey(), $query['area_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -106,10 +107,9 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Cuenca</label>
-										       		<select name="id_cuenca[]" multiple class=" selectpicker form-control">
-										       			
+										       		<select name="cuenca_id[]" depends-location location-list="cuenca" multiple class=" selectpicker form-control">
 										       			@foreach ($cuencas as $m)
-										       				<option {{ ( isset($query['id_cuenca']) && in_array($m->getKey(), $query['id_cuenca']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['cuenca_id']) && in_array($m->getKey(), $query['cuenca_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -117,10 +117,10 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Campo</label>
-										       		<select name="id_camp[]" multiple class=" selectpicker form-control">
+										       		<select name="camp_id[]" depends-location location-list="camp" multiple class=" selectpicker form-control">
 										       			
 										       			@foreach ($camps as $m)
-										       				<option value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['camp_id']) && in_array($m->getKey(), $query['camp_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -128,10 +128,10 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Operador</label>
-										       		<select name="id_operator[]" multiple class="selectpicker form-control">
+										       		<select name="operator_id[]" multiple class="selectpicker form-control">
 										       			
 										       			@foreach ($operators as $m)
-										       				<option {{ ( isset($query['id_operator']) && in_array($m->getKey(), $query['id_operator']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['operator_id']) && in_array($m->getKey(), $query['operator_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -139,9 +139,9 @@
 											<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
 												<div class="form-group form-group-xs">
 													<label for="">Tipo de pozo</label>
-										       		<select name="id_type[]" multiple class="selectpicker form-control">
+										       		<select name="type_id[]" multiple class="selectpicker form-control">
 										       			@foreach ($types as $m)
-										       				<option {{ ( isset($query['id_type']) && in_array($m->getKey(), $query['id_type']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['type_id']) && in_array($m->getKey(), $query['type_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -202,7 +202,7 @@
 							  <button data-toggle="dropdown" class="btn btn-primary dropdown-toggle"><span class="caret"></span></button>
 							  <ul class="dropdown-menu">
 								<li><a href="{{{ route($entityName.'.show', ['id'=>$model->id]) }}}"  >Ver detalles</a></li>
-								 <li><a href="{{{ route('service.create',['id_well'=>$model->getKey()]) }}}"  >A&ntilde;adir servicio</a></li>
+								 <li><a href="{{{ route('service.create',['well_id'=>$model->getKey()]) }}}"  >A&ntilde;adir servicio</a></li>
 								<li><a href="{{{ route($entityName.'.edit', ['id'=>$model->id]) }}}"  >Editar</a></li>
 							  </ul>
 							</div>
@@ -216,8 +216,12 @@
 				</div>	
 			</div>
 		@else
-			<div class="alert alert-primary">
-				<h4> No se han encontrado resultados </h4>
+			<div class="col-xs-12">
+				<div class="panel panel-info">
+					<div class="alert alert-primary">
+						<h4> No se han encontrado resultados </h4>
+					</div>
+				</div >
 			</div>
 		@endif
 					
@@ -292,5 +296,28 @@
 		var models ={!! $models->toJson() !!}
 		console.log(models);
 		$('#map').wellMap({type: 'osm', data: models.data, popUpTemplate:$('#poup-template').html() });
+		
+		setTimeout(function() {
+			$('select[select-country]').on('locationSelect.sent', function(){
+				$('select[select-state], select[select-city]').html('');
+			});
+			$('select[select-state]').on('locationSelect.sent', function(){
+				$('select[select-city]').html('');
+			});
+			$('select[select-country]').locationSelect({
+				initRun: true,
+				dependsSelector: 'select[depends-location], select[select-state]'
+			});
+			$('select[select-state]').locationSelect({
+				initRun: false,
+				dependsSelector: 'select[depends-location], select[select-city]'
+			});
+
+			$('select[select-city]').locationSelect({
+				initRun: false,
+				dependsSelector: 'select[depends-location]'
+			});
+		}, 500);
+		
 	</script>
 @stop

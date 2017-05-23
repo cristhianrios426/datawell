@@ -93,6 +93,9 @@ return [
     'numbers'      => 'El campo :attribute debe incluir al menos un número.',
     'letters'      => 'El campo :attribute debe incluir al menos un una letra.',
     'symbols'      => 'El campo :attribute debe incluir al menos un símbolo.',
+    'exists_eloquent'      => 'El campo :attribute no es válido.',
+    'exists_eloquent'      => 'El campo :attribute no es válido.',
+    'different_than'      => 'El campo :attribute no es válido',
 
     /*
     |--------------------------------------------------------------------------
@@ -127,7 +130,10 @@ return [
         'email'=>'correo electrónico',
         'name'=>'nombre',
         'ide'=>'número de identificación',
-        'ide_type'=>'tipo de identificación'
+        'ide_type'=>'tipo de identificación',
+        'location_id'=>'Ubicación',
+        'client_id'=>'cliente',
+        'parent_id'=>'padre',
     ],
 
 ];

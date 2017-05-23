@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Session\TokenMismatchException;
+use App\Util\Exception\AuthorizeException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -44,7 +46,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        
+        if ($exception instanceof TokenMismatchException ) {            
+            return $this->responseException($request,$exception, 550);
+        }else if($exception instanceof AuthorizeException){
+            return $this->responseAuthorize($request,$exception, 500);
+        }
         return parent::render($request, $exception);
         
     }
@@ -63,5 +69,35 @@ class Handler extends ExceptionHandler
         }
 
         return redirect()->guest(route('login'));
+    }
+
+    public function responseException($request, $e, $status = 500){
+        if ( $request->isXmlHttpRequest() || $request->wantsJson()) {
+            return response()->json( [
+                'error' => [
+                    'exception' =>$e->getMessage(),                    
+                ]
+            ], $status );
+        }else{
+            $r =  response()->view('error.standard', ['exception'=>$e], $status);
+            $r->setStatusCode($status);
+            return $r;
+        }
+    } 
+
+    public function responseAuthorize($request, $e ){
+        $status = 422;
+        if (  $request->wantsJson()) {
+            $messages = count($e->getCantReasons()) > 0 ? $e->getCantReasons() : [$e->getMessage()];
+            return response()->json( ['messages'=>['messages'=>$messages, 'type'=>'danger']] , $status);
+        }elseif( $request->isXmlHttpRequest() && !$request->wantsJson() ){
+            $r = response()->view('error.simple', ['exception'=>$e]);
+            $r->setStatusCode($status);
+            return $r;
+        }else{
+            $r = response()->view('error.standard', ['exception'=>$e]);
+            $r->setStatusCode($status);
+            return $r;
+        }
     }
 }

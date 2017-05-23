@@ -52,80 +52,82 @@
                         <li>
                             <a href="{{{ route('service.index') }}}">Servicios</a>
                         </li>
-                        <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-                               Ajustes<span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu multi-level" role="menu">
-                                <li>
-                                    <a href="{{ route('user.index') }}" >
-                                        Usuarios
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('operator.index') }}" >
-                                        Operadores
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('block.index') }}" >
-                                        Bloques
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('section.index') }}" >
-                                        Secciones
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('well-type.index') }}" >
-                                        Tipos de pozo
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('coordinate-sys.index') }}" >
-                                        Sistemas de coordenadas
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('area.index') }}" >
-                                        Regiones
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('cuenca.index') }}" >
-                                        Cuencas
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('camp.index') }}" >
-                                        Campos
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{ route('client.index') }}" >
-                                        Clientes
-                                    </a>
-                                </li> 
-                                <li class="divider"></li>                               
-                                <li class="dropdown dropdown-submenu">
-                                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tipos de servicio</a>
-                                    <ul class="dropdown-menu">
-                                        <li><a href="{{ route('service-type.index') }}">Servicios</a></li>
-                                        <li><a href="{{ route('business-unit.index') }}">Unidades de negocios</a></li>                                        
-                                    </ul>
-                                </li>
-                            </ul>
-                        </li>
+                        @can('index', "App\\ORM\\Setting")
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                                   Ajustes<span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu multi-level" role="menu">
+                                    <li>
+                                        <a href="{{ route('user.index') }}" >
+                                            Usuarios
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('operator.index') }}" >
+                                            Operadores
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('block.index') }}" >
+                                            Bloques
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('section.index') }}" >
+                                            Secciones
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('well-type.index') }}" >
+                                            Tipos de pozo
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('coordinate-sys.index') }}" >
+                                            Sistemas de coordenadas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('area.index') }}" >
+                                            Regiones
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('cuenca.index') }}" >
+                                            Cuencas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('camp.index') }}" >
+                                            Campos
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('client.index') }}" >
+                                            Clientes
+                                        </a>
+                                    </li> 
+                                    <li class="divider"></li>                               
+                                    <li class="dropdown dropdown-submenu">
+                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Tipos de servicio</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="{{ route('service-type.index') }}">Servicios</a></li>
+                                            <li><a href="{{ route('business-unit.index') }}">Unidades de negocios</a></li>                                        
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endcan                       
                     </ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
                         <!-- Authentication Links -->
+                         <li><a href="#" data-target="#contact-modal" data-toggle="modal">Contacto</a></li>
                         @if (Auth::guest())
                             <li><a href="{{ route('login') }}">Login</a></li>
-                        @else
-                            
+                        @else                            
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
                                     {{ Auth::user()->name }} <span class="caret"></span>
@@ -148,11 +150,58 @@
             </div>
         </nav>
         @yield('content')
+        <div class="modal fade " tabindex="-1" role="dialog" id="contact-modal" aria-hidden="true" >
+            <div class="modal-dialog ">
+                <div class="modal-content" id="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">Formulario de contacto</h4>
+                    </div>
+                    <form action="{{{ route('send-contact') }}}"  method="POST" id="contact-form">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="alert alert-info">
+                                        Los campos marcados con asterisco (*) son obligatorios
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="form-group">
+                                        <label >Asunto *</label>
+                                        <input type="text" name="subject" class="form-control required" value="" >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <div class="form-group">
+                                        <label >Mensaje *</label>
+                                        <textarea type="text" name="message" class="form-control required" ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row col-xs-12">
+                                <div alert=""></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="{{ asset('js/app.js?time='.time()) }}"></script>
+    <script src="{{ asset('js/app.js') }}"></script>    
     <script src="{{ asset('vendors/validate/jquery.validate.min.js') }}"></script>
     <script src="{{ asset('vendors/validate/localization/messages_'.config('app.locale').'.min.js') }}"></script>    
+    <script src="{{ asset('js/scripts/jquery.sendajax.js') }}"></script>    
+    <script src="{{ asset('js/boot.js?time='.time()) }}"></script>
     @yield('footer')
 </body>
 </html>

@@ -4,6 +4,7 @@
 @stop
 @section('content')
 <div class="container">
+	@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 	<div class="row">
 		<div class="col-xs-12">
 			<form action="">
