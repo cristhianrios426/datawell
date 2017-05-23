@@ -112,7 +112,7 @@ class Base{
 		return $input;
 	}
 	
-	public function save($entity = NULL, array $input = [], $save = true){
+	public function save($entity = NULL, array $input = []){
 		if($entity == null){
 			$className = $this->ORMClass;
 			$entity = new $className;
@@ -149,9 +149,9 @@ class Base{
 			$v->fails();
 			throw new ValidatorException($v);
 		}
-		if($save){
-			$this->entity->save();	
-		}
+		
+		$this->entity->save();	
+		
 		
 	}
 

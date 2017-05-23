@@ -6,10 +6,9 @@ class Well extends BaseModel
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes, LocationTrait;
 	
-    const STATE_DRAFT = 1;
-    const STATE_APPROVING = 2;
-    const STATE_REVIEWING= 3;
-    const STATE_ACTIVE = 4;
+    const STATE_APPROVING = 1;
+    const STATE_REVIEWING= 2;
+
 
     protected $fillable = [];
     protected $table = 'wells';
@@ -97,10 +96,22 @@ class Well extends BaseModel
     }
 
     public function scopeFilterUser($q, $user){
+
         if($user->isClient()){
             $q->whereHas('services', function($q2) use ($user){
-                $q2->filterUser($user);
+                $q2->filterUser($user);                
                 return $q2;
+            });
+            $q->where('approved', 1);
+        }else{
+            $q->where(function($innerq) use ($user){
+                $innerq
+                    ->where('draft', 0)
+                    ->orWhere(function($subq) use ($user){
+                        $subq
+                            ->where('draft', 1)
+                            ->where('created_by', $user->getKey());
+                    }); 
             });
         }
         return $q;

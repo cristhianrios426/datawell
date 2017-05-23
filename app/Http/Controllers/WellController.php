@@ -81,7 +81,9 @@ class WellController extends Controller
         if($id == null){
             $model = new Model();
         }else{
-            $model = $this->repository->whereKey($id)->first();
+            $model = $this->repository->whereKey($id)->with(['revisions'=>function($q){
+                return $q->orderBy('created_at', 'DESC');
+            }, 'revisions.createdBy'])->first();
         }
 
         if(!$model){
@@ -131,54 +133,108 @@ class WellController extends Controller
         \DB::beginTransaction();
         try {
             $user = \Auth::user();            
-            $this->repository->save($model, $request->all(), false);
-            $model  = $this->repository->getEntity();
-            if($request->has('action') && $request->input('action') == 'approve'){
-                if( ( $mode == static::MODE_UPDATE && $user->can('approve', $model) )  || ($mode == static::MODE_CREATE && $user->can('createapprove', Model::class) ) ){
-                    $model->state = Model::STATE_ACTIVE;
+            
+            if($request->has('action') && ( $request->input('action') == 'approve'  || $request->input('action') == 'createapproved' ) ){
+                if( 
+                    ($mode == static::MODE_UPDATE && $user->can('approve', $model) )  || 
+                    ($mode == static::MODE_CREATE && $user->can('createapproved', Model::class) ) 
+                ){
+                    $this->repository->save($model, $request->all(), false);
+                    $model  = $this->repository->getEntity();
+                    $model->state = 0;
+                    $model->approved = 1;
+                    $model->draft = 0;
                     $model->approved_by = $user->getKey();
                 }else{
                     $e = new \App\Exceptions\Exception();
                     $e->setContext(['Acción no autorizada. 1']);
                     throw $e;
                 }
-            }elseif($request->has('action') && $request->input('action') == 'sendapprove'  && $request->has('assigned_to') ){ 
-                if($user->can('sendapprove', $model )){
-                    $assigned = User::find($request->input('assigned_to'));
-                    if(!$assigned){
-                        $e = new \App\Exceptions\Exception();
-                        $e->setContext(['El usuario asignado no es válido']);
-                        throw $e;
+            }elseif(
+                $request->has('action') && 
+                (
+                    $request->input('action') == 'sendapprove'  || 
+                    (
+                        $request->input('action') == 'createsendapprove' && 
+                        $request->has('assigned_to')
+                    )
+                )
+                
+            ){ 
+                $this->repository->save($model, $request->all(), false);
+                $model  = $this->repository->getEntity();
+                if(
+                    ($mode == static::MODE_UPDATE && $user->can('sendapprove', $model) )  || 
+                    ($mode == static::MODE_CREATE && $user->can('createsendapprove', Model::class) ) 
+                ){
+                    if( ! $model->assignedTo){
+                        $assigned = User::find($request->input('assigned_to'));
+                        if(!$assigned){
+                            $e = new \App\Exceptions\Exception();
+                            $e->setContext(['El usuario asignado no es válido']);
+                            throw $e;
+                        }
+                        if(!$assigned->inMyLocation($model->location)){
+                            $e = new \App\Exceptions\Exception();
+                            $e->setContext(['El usuario asignado no es válido']);
+                            throw $e;
+                        }
+                        $model->assigned_to = $assigned->getKey();
                     }
-                    if(!$assigned->inMyLocation($model->location)){
-                        $e = new \App\Exceptions\Exception();
-                        $e->setContext(['El usuario asignado no es válido']);
-                        throw $e;
-                    }             
                     $model->state = Model::STATE_APPROVING;
-                    $model->assignedTo()->associate($assigned);
+                    $model->draft = 0;
+                    
                 }else{
                     $e = new \App\Exceptions\Exception();
                     $e->setContext(['Acción no autorizada. 2']);
                     throw $e;
                 }                
-            }elseif($request->has('action') && $request->input('action') == 'draft'){
-                $model->state = Model::STATE_DRAFT;
+            }elseif(
+                ($mode == static::MODE_UPDATE && $user->can('draft', $model) )  || 
+                ($mode == static::MODE_CREATE && $user->can('createdraft', Model::class) ) 
+            ){
+                $this->repository->save($model, $request->all(), false);
+                $model  = $this->repository->getEntity();
+
+                $model->state = 0;
+                $model->draft = 1;
+            }elseif(
+                ($mode == static::MODE_UPDATE && $user->can('fulledit', $model) )
+            ){
+                $this->repository->save($model, $request->all(), false);
+                $model  = $this->repository->getEntity();
+                $model->state = 0;
+                $model->draft = 1;
             }else{
                 $e = new \App\Exceptions\Exception();
                 $e->setContext(['Acción no autorizada. 3']);
                 throw $e;
             }
             $model->save();
-            $user = \Auth::user();
+                     
             if($request->has('attachments') && is_array($request->get('attachments'))){
                 $attachRepo = new AttachmentRepository();
                 foreach ($request->input('attachments') as $key => $attach) {
                     try {
                         $attachRepo->save(new Attachment, $attach);
                         $this->repository->getEntity()->attachments()->save($attachRepo->getEntity());
-                        $attachRepo->getEntity()->state = $model->state;
-                        $attachRepo->getEntity()->save();
+                        $att = $attachRepo->getEntity();
+                        if(
+                            $request->input('action') == 'approve' || 
+                            $request->input('action') == 'createapproved' ||
+                            $request->input('action') == 'fulledit' 
+                        ){
+
+                            $att->approved_by = $model->approved_by;                            
+                            $att->approved_at = date('Y-m-d');                            
+                            $att->approved =1;                            
+                        }
+                        if($request->input('action') == 'sendapprove' || $request->input('action') == 'createsendapprove'){
+                            $att->assigned_to = $model->assigned_to;                            
+                        }
+                        $att->state = $model->state;
+                        $att->draft = $model->draft;
+                        $att->save();                       
                     }catch (\App\Repository\Exception\ValidatorException $e) {
                         \DB::rollback();
                         return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
@@ -187,15 +243,7 @@ class WellController extends Controller
                         return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
                     }
                 }
-            }
-            // $attachRepo->getEntity()->state = $model->state;
-            // if($model->assignedTo){
-            //     $model->assignedTo()->associate($assigned);
-            // }
-            $model->attachments()->update([
-                'state'=>$model->state, 
-                'assigned_to'=>$model->assigned_to
-            ]);
+            }            
             \DB::commit(); 
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('well.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
         }catch(\App\Exceptions\Exception $e){

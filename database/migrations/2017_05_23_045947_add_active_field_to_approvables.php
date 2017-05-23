@@ -13,12 +13,16 @@ class AddActiveFieldToApprovables extends Migration
      */
     public function up()
     {
-         $tables = ['services', 
-                    'wells'];
+        $tables = ['services', 
+                    'wells',
+                    'attachments'];
         foreach ($tables as $key => $table) {
             Schema::table($table, function(Blueprint $table)
             {
+
                 $table->timestamp('approved_at')->nullable();
+                $table->boolean('approved')->nullable();
+                $table->boolean('draft')->nullable();
             });
         }
     }
@@ -30,6 +34,20 @@ class AddActiveFieldToApprovables extends Migration
      */
     public function down()
     {
-        //
+        $tables = ['services', 
+                    'wells',
+                    'attachments'];
+        foreach ($tables as $key => $tableName) {            
+            Schema::table($tableName, function(Blueprint $table) use ($tableName)
+            {
+                foreach (['approved_at', 'approved', 'draft'] as $key => $field) {
+                    if(Schema::hasColumn($tableName, $field)){
+                        $table->dropColumn($field);                       
+                    }else{
+                        echo 'no';
+                    }
+                }
+            });
+        }
     }
 }

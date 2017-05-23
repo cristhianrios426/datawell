@@ -5,7 +5,8 @@ use App\Validator;
 use App\ORM\Location;
 use App\ORM\User;
 use App\ORM\Well;
-//use App\ORM\Service;
+use App\ORM\Service;
+use App\ORM\Revision;
 use App\ORM\BaseModel;
 use App\ORM\Observer\LocationObserver;
 use App\ORM\Observer\PersonObserver;
@@ -49,7 +50,8 @@ class AppServiceProvider extends ServiceProvider
         BaseModel::observe(PersonObserver::class);
         User::observe(PersonObserver::class);
         Well::observe(PersonObserver::class);
-        //Service::observe(PersonObserver::class);
+        Revision::observe(PersonObserver::class);
+        Service::observe(PersonObserver::class);
         DB::statement('SET FOREIGN_KEY_CHECKS = 0');
 
     }

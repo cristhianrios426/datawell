@@ -20,11 +20,38 @@ class WellPolicy
      */
     public function view(User $user, Well $model)
     {
+
         if($user->isClient()){
             return ($model->services()->where('client_id', $user->client_id)->count() > 0);
         } else{
             return true;
         }
+    }
+
+    public function create(User $user, $model = Well::class)
+    {   
+        if(is_string($model)){
+            $model = NULL;
+        }
+
+        if($user->isSuperAdmin()){
+            return true;
+        }
+        if( $user->isEngineer()||
+            $user->isAdmin() ||
+            $user->isSupervisor() 
+        ){
+            if(!$model){
+                return true;
+            }else{
+                $location = Location::find($model->location_id);
+                if(!$location){
+                    return false;
+                }
+                return $location->inLocation($user->location);  
+            }
+        }
+        return false;
     }
 
     public function createdraft(User $user){
@@ -39,51 +66,115 @@ class WellPolicy
         }        
     }
 
+
+
     public function createsendapprove(User $user){
         if($user->isEngineer() || 
             $user->isAdmin() || 
             $user->isSuperAdmin() || 
             $user->isSupervisor()
         ){
-            return true;
+           
+           return true;
+           
         }else{
             return false;
         }        
     }
+    
+    public function createapproved(User $user){        
+        if($user->isSuperAdmin() || $user->isAdmin()){
+            return true;
+        }
+        return false;     
+    }
 
-    public function create(User $user)
+    public function draft(User $user, Well $model){              
+        return  ($model->createdBy && ( $model->createdBy->getKey() == $user->getKey()) && $model->draft == 1);
+        
+    }
+    
+    
+
+    public function approve(User $user,  Well $model)
     {
-        if(is_string($model)){            
-            $model = NULL;
+        
+        if($model->approved == 1){
+            return false;
         }
 
-        if($model == NULL ){
-            
-            if($user->isEngineer() || 
-                $user->isAdmin() || 
-                $user->isSuperAdmin() || 
-                $user->isSupervisor()
-            ){
+        if($user->isSuperAdmin()){
+            return true;
+        }
+        if($user->isEngineer()){
+            return false;
+        }
+        if($user->isAdmin()){
+            if($model == NULL){
                 return true;
             }else{
-                return false;
-            }        
-        }else{
-
-            if($user->isSuperAdmin() ){
-                return true;
-            }elseif( $user->isAdmin() || $user->isSupervisor() || $user->isEngineer()){
-
-                $modelLocation = Location::find($model->location_id);
-                
-                if(!$modelLocation){
-                    return false;
-                }
-                return ($user->inMyLocation($modelLocation));
-            }  
-            return false;    
+                return ($model->location && $model->inLocation($user->location));
+            }
         }
         
+        if($user->isSupervisor()){
+            return (
+                (
+                    $model->assignedTo && 
+                    $model->assignedTo->getKey() == $user->getKey() && 
+                    $model->approved != 1 
+                )  ||
+                (
+                    $this->draft($user, $model)
+                )             
+            );
+        } 
+        return false;
+    }
+
+    public function review(User $user, Well $model){
+
+        $reviewable = (
+                ($model->state == Well::STATE_APPROVING  || $model->state == Well::STATE_REVIEWING  ) &&
+                $model->approved != 1
+        );
+
+        if($user->isSupervisor()){
+            $authorized = $model->assignedTo && ($model->assignedTo->getKey() == $user->getKey());    
+        }else if($user->isAdmin()){
+            $authorized = $model->location && $model->location->inLocation($user->location);    
+        }else if($user->isSuperAdmin()){
+            $authorized = true;
+        }else{
+            $authorized = false;
+        }
+
+        return ($authorized && $reviewable);
+    }
+
+    public function sendapprove(User $user, Well $model)
+    {
+        $approveable = (
+            $model->state != Well::STATE_APPROVING && 
+            $model->approved != 1
+        );
+        $authorized = $this->draft($user,  $model);
+        return ($authorized && $approveable);
+    }
+    
+    public function fulledit(User $user, Well $model){
+        if( $user->isSuperAdmin()){
+            return !$this->approve($user, $model);
+        }   
+        if($user->isAdmin()){
+            $location = Location::find($model->location_id);
+            if(!$location){
+                    return false;
+            }
+            return ($location->inLocation($user->location) && $model->approved == 1);  
+            
+        }
+        return false;
     }
 
     /**
@@ -101,30 +192,48 @@ class WellPolicy
         if($user->isSuperAdmin()){
             return true;
         }
-        if($user->isEngineer() && 
-            $model->createdBy && 
-            $model->createdBy->getKey() == $user->getKey() && 
-            $model->state ==  Well::STATE_DRAFT){
-            return true;   
+        if($user->isEngineer()){
+            
+            return (
+                $this->draft( $user, $model) ||
+
+                (
+                    $model->createdBy &&
+                    $model->createdBy->getKey() == $user->getKey()  &&
+                    $model->approved != 1 &&
+                    $model->state == Well::STATE_REVIEWING
+                )
+            );              
         }
-        if($user->isSupervisor() && $model->assignedTo && $model->assignedTo->getKey() == $user->getKey()){
-            return true;   
+        if($user->isSupervisor()){
+
+            $r = (
+                     $this->draft( $user, $model) ||
+                     (
+                        $model->assignedTo && 
+                        $model->assignedTo->getKey() == $user->getKey() &&
+                        $model->approved != 1 
+                        
+                     )
+                );
+            return $r;
         }
-        if($user->isAdmin() && $model->location && $model->inLocation($user->location) ){
-            return true;
+
+        if($user->isAdmin()){
+            if($this->draft( $user, $model)){
+                return true;
+            }else{
+                $location = Location::find($model->location_id);
+                if(!$location){
+                    return false;
+                }
+                return $location->inLocation($user->location);  
+            }
         }
         return false;
     }
 
-    public function save(User $user, $model = Well::class){
-        if(is_string($model) || !$model->exists){
-            return $this->create( $user, $model);
-        }else{
-            return $this->update( $user, $model);
-        }
-    }
-
-    /**
+     /**
      * Determine whether the user can delete the location.
      *
      * @param  \App\User  $user
@@ -133,100 +242,12 @@ class WellPolicy
      */
     public function delete(User $user, Well $model)
     {
-        if(  $user->isSuperAdmin() || 
-            (
-                $user->isAdmin() &&
-                $model->location &&
-                $model->inLocation($user->location)
-            ) 
-        ){
-            return true;
-        }
-        return false;
-    }
-
-    public function approve(User $user,  $model = Well::class)
-    {
-        if(is_string($model)){
-            $model = NULL;
-        }
-
-        if($user->isEngineer()){
-
-            return false;
-        }
-
-        if($user->isSuperAdmin()){
+        if(  $user->isSuperAdmin()){
             return true;
         }
 
-        if($user->isAdmin()){
-            if($model == NULL){
-                return true;
-            }else{
-                return ($model->location && $model->inLocation($user->location));
-            }
-        }
-        
-        if($user->isSupervisor()){            
-            if($model == NULL){
-                return true;
-            }else{
-                return ($model->assignedTo && $model->assignedTo->getKey() == $user->getKey() &&  in_array((int) $model->state, [ Well::STATE_APPROVING,  Well::STATE_DRAFT]) );
-            }
-        }       
+
         return false;
     }
 
-    public function createapprove(User $user)
-    {       
-        if($user->isSuperAdmin() ||  $user->isAdmin() || $user->isSupervisor() ){
-            
-            return true;
-        }
-        return false;
-    }
-
-    public function review(User $user, Well $model){
-        return ( (int) $model->state == Well::STATE_APPROVING ) && $model->assignedTo && ($model->assignedTo->getKey() == $user->getKey()) ;
-    }
-
-    public function sendapprove(User $user,  $model = Well::class)
-    {
-        if(is_string($model)){
-            $model = NULL;
-        }
-        if($model && 
-            $model->exists &&  
-            ($model->state  == Well::STATE_APPROVING || $model->state  == Well::STATE_REVIEWING)){
-            return false;
-        } 
-        if($user->isSuperAdmin()){
-            return true;
-        }
-        if($user->isAdmin()){
-            if($model == NULL){
-                return true;
-            }else{
-                return ($user->inMyLocation($user->location));
-            }
-        }
-        if($user->isSupervisor()){
-            if($model == NULL){
-                return true;
-            }else{                        
-                return ($model->created_by == $user->getKey() &&  $model->state == Well::STATE_APPROVING);
-            }
-        }
-        if($user->isEngineer()){
-            if($model == NULL){
-                return true;
-            }else{     
-                       
-                return ($model->created_by == $user->getKey());
-            }
-        }       
-        return false;
-    }
-
-}
+}   

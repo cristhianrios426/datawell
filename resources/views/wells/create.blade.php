@@ -247,42 +247,59 @@
                     </div>  
                     <div class="panel-footer text-right">                        
                         @if (!$model->exists)                            
-                            @if( $user->can('createdraft' ) )
+                            @if( $user->can('createdraft', \App\ORM\Well::class ) )
                                 <button type="submit"  name="action" value="createdraft"  class="btn btn-primary">
                                     Guardar Borrador
                                 </button>  
                             @endif                             
-                            @if( $user->can('createapproved' ) )
-                                <button type="submit"  name="action" value="approve"  class="btn btn-primary">
+                            @if( $user->can('createapproved', \App\ORM\Well::class ) )
+                                <button type="submit"  name="action" value="createapproved"  class="btn btn-primary">
                                     Guardar y Aprobar
                                 </button>  
                             @endif                      
-                            @if( $user->can('createsendapprove' ) )
+                            @if( $user->can('createsendapprove', \App\ORM\Well::class ) )
                                 <button type="button" assigned-modal class="btn btn-primary">
                                     Enviar a aprobaci&oacute;n
                                 </button>  
                             @endif  
                         @else 
-                            @if( $user->can('update', $model ) && $model->state == 1)
+
+                            @if( $user->can('draft', $model ) )
                                 <button type="submit"  name="action" value="draft"  class="btn btn-primary">
                                     Guardar Borrador
-                                </button>  
+                                </button>
                             @endif 
+                            @if( $user->can('fulledit', $model ) == true)
+                                <button type="submit"  name="action" value="fulledit"  class="btn btn-primary">
+                                    Guardar
+                                </button>
+                            @endif
                             @if( $user->can('approve', $model ) == true)
                                 <button type="submit"  name="action" value="approve"  class="btn btn-primary">
                                     Guardar y Aprobar
                                 </button>
-                            @endif                      
+                            @endif 
                             @if( $user->can('review', $model ) == true)
                                 <button type="button" send-revision data-toggle="modal" data-target="#send-revision" class="btn btn-warning">
-                                    Enviar a revisi&oacute;n
+                                    Enviar revisi&oacute;n
                                 </button>
                             @endif 
                             @if( $user->can('sendapprove', $model ) )
-                                <button type="button" assigned-modal class="btn btn-primary">
-                                    Enviar a aprobaci&oacute;n
+                                @if (!$model->assignedTo)
+                                    <button type="button" assigned-modal class="btn btn-primary">
+                                        Enviar a aprobaci&oacute;n
+                                    </button> 
+                                @else    
+                                    <button type="submit" name="action" value="sendapprove" class="btn btn-primary">
+                                        Enviar a aprobaci&oacute;n
+                                    </button>
+                                @endif
+                            @endif
+                            @if ($model->exists && $model->revisions->count() > 0)
+                                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#revisions-modal">
+                                    Ver revisiones
                                 </button>
-                            @endif  
+                            @endif
                         @endif
                         <a href="{{{ url()->previous() }}}" class="btn btn-warning">
                             Cancelar
@@ -291,7 +308,7 @@
                 </div>
             </div>
         </div>
-        @if( $model->exists && $user->can('sendapprove', $model) ) 
+        @if( ( !$model->exists && $user->can('createsendapprove', $model) ) ||   ( !$model->assignedTo && $model->exists && $user->can('sendapprove', $model) ) ) 
             <div class="modal fade" id="select-assigned" tabindex="-1" role="dialog">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -330,6 +347,37 @@
         @endif
     </form>
 </div>
+@if ($model->exists && $model->revisions->count() > 0 )
+    <div class="modal fade" id="revisions-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Revisiones</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                @foreach ($model->revisions as $revision)
+                                    <div class="alert alert-info">
+                                       <strong>{{ $revision->created_at }} - {{ $revision->createdBy->name}}: </strong><br>
+                                        {!! nl2br(e($revision->content)) !!}
+                                    </div>
+                                @endforeach                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
+                   
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+@endif
+
 
 @if ( $model->exists && $user->can('review', $model ) )
 <div class="modal fade" id="send-revision" tabindex="-1" role="dialog">
