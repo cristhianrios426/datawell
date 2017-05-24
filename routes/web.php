@@ -21,6 +21,7 @@ Route::get('test', function(){
 	var_dump($user->can('create', $l));
 });
 Route::post('location-select', ['uses'=> 'HomeController@locationSelect']);
+Route::post('valid-supervisor', ['uses'=> 'HomeController@validSupervisor']);
 
 Route::get('/app', 'BackController@index');
 
@@ -46,6 +47,7 @@ Route::resource('location', 'LocationsController');
 Route::post('send-contact', ['uses'=>'ContactCenter@send', 'as'=>'send-contact']);
 
 Route::get('service/attachment/{id}/{aid}', ['uses'=>'ServiceController@serveAttachment', 'as'=>'service.attachment']);
+Route::post('service/{id}/revision',[ 'as'=>'service-revision', 'uses'=>'ServiceController@revision']);
 Route::resource('service', 'ServiceController');
 
 Route::get('well/attachment/{id}/{aid}', ['uses'=>'WellController@serveAttachment', 'as'=>'well.attachment']);

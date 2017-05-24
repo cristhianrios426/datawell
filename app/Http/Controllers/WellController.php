@@ -204,7 +204,8 @@ class WellController extends Controller
                 $this->repository->save($model, $request->all(), false);
                 $model  = $this->repository->getEntity();
                 $model->state = 0;
-                $model->draft = 1;
+                $model->draft = 0;
+                $model->approved = 1;
             }else{
                 $e = new \App\Exceptions\Exception();
                 $e->setContext(['Acción no autorizada. 3']);
@@ -243,6 +244,19 @@ class WellController extends Controller
                         return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
                     }
                 }
+            }
+            if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
+                $deleteds = [];
+                foreach ($request->input('old_attachments') as $key => $attach) {
+                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
+                        $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
+                        if($attachment){
+                            $attachment->delete();
+                            $deleteds[] = $attachment->getKey();
+                        }
+                    }
+                }
+               
             }            
             \DB::commit(); 
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('well.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
@@ -360,7 +374,7 @@ class WellController extends Controller
                                 'type'=>'success', 
                                 
                             ],
-                        'redirect'=>route('well.show',['id'=>$model->getKey()]),
+                        'redirect'=>route($this->entityName.'.show',['id'=>$model->getKey()]),
                         'delay'=>500
                     ]
                 );

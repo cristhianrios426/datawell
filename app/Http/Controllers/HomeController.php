@@ -7,14 +7,15 @@ use App\ORM\Well as Model;
 use App\Repository\WellRepository;
 use App\ORM\CoordinateSys;
 use App\ORM\Area;
-use App\ORM\User;
 use App\ORM\Camp;
 use App\ORM\Cuenca;
 use App\ORM\Block;
 use App\ORM\WellType;
+use App\ORM\User;
 use App\ORM\Desviation;
 use App\ORM\ServiceType;
 use App\ORM\Location;
+use App\ORM\Well;
 use App\ORM\Operator;
 use App\ORM\Attachment;
 
@@ -86,6 +87,23 @@ class HomeController extends Controller
             return response()->json($e->getContext(), 550);
         }       
         return response()->json($images);
+    }
+
+    public function validSupervisor(Request $request){
+        if($request->has('well_id')){
+            $id = $request->input('well_id');
+            $well = Well::find($id);
+            if(!$well){
+                return [];
+            }
+            $location = $well->location;
+            if(!$location){
+                return [];
+            }
+            $users = User::vacum()->isSupervisor()->inLocation($location)->get();
+            return $users;
+        }
+        return [];
     }
 
     public function locationSelect(Request $request){

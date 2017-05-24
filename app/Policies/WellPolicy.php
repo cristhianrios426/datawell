@@ -27,6 +27,16 @@ class WellPolicy
             return true;
         }
     }
+    
+    public function updateapproved(User $user, Well $model){
+        if($model->approved != 1){
+            return false;
+        }
+        if($user->isSuperAdmin()){
+            return true;
+        }
+        
+    }
 
     public function create(User $user, $model = Well::class)
     {   

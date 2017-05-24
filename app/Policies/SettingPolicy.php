@@ -34,7 +34,6 @@ class SettingPolicy
 
         if(is_string($entity)){
             $entity = NULL;
-
         }
 
         if($user->isSuperAdmin()){
@@ -78,18 +77,23 @@ class SettingPolicy
             return true;
         }else if($user->isAdmin()){
 
+            if($model instanceof locationable){
 
-            if(!$user->location){
-                return false;
-            }
-            if(!$model->location){
+                if(!$user->location){
+                    return false;
+                }
+                if($model->location){
 
-                return $model->getKey() == $user->location->getKey();
-            }   
-            return $user->inMyLocation($model->location);
+                    return $model->getKey() == $user->location->getKey();
+                }   
+                return $user->inMyLocation($model->location);
 
-            return false;
-        }        
+            }else{
+                return true;
+            }            
+            
+        }   
+        return false;     
     }
 
     /**

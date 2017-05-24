@@ -7,9 +7,9 @@ class ServiceRepository extends Base{
 		'name',
 		'description',
 		'ended_at',
-		'id_section',
-		'id_well',
-		'id_service_type',
+		'section_id',
+		'well_id',
+		'service_type_id',
 	];
 	public function __construct()	
 	{	
@@ -21,9 +21,9 @@ class ServiceRepository extends Base{
 			
 			'description'=>'descripción',
 			'ended_at'=>'fecha de terminación',
-			'id_section'=>'tipo de sección',
-			'id_well'=>'pozo',
-			'id_service_type'=>'tipo de servicio',			
+			'section_id'=>'tipo de sección',
+			'well_id'=>'pozo',
+			'service_type_id'=>'tipo de servicio',			
 		];
 	}	
 
@@ -32,9 +32,9 @@ class ServiceRepository extends Base{
 			'name'=>'required',
 			'description'=>'sometimes|string|nullable',
 			'ended_at'=>'required|date',
-			'id_section'=>'required|exists_eloquent:\\App\\ORM\\Section',
-			'id_well'=>'required|exists_eloquent:\\App\\ORM\\Well',
-			'id_service_type'=>'required|exists_eloquent:\\App\\ORM\\ServiceType',			
+			'section_id'=>'required|exists_eloquent:\\App\\ORM\\Section',
+			'well_id'=>'required|exists_eloquent:\\App\\ORM\\Well',
+			'service_type_id'=>'required|exists_eloquent:\\App\\ORM\\ServiceType',			
 		];
 	}
 

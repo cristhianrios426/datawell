@@ -2,10 +2,12 @@
 namespace App\ORM;
 use App\ORM\User;
 use App\ORM\Location;
+use App\ORM\ApproveTrait;
+
 class Well extends BaseModel
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes, LocationTrait;
-	
+	use ApproveTrait;
     const STATE_APPROVING = 1;
     const STATE_REVIEWING= 2;
 
@@ -61,28 +63,22 @@ class Well extends BaseModel
         return route('well.attachment', ['id'=>$this->getKey(), 'aid'=>$id]);
     }
 
-    public function isState($state){
-        if(is_string($state) ){
-            $method = 'isState'.studly_case($state);
-            $const = strtoupper(snake_case($satate));
-            if( $this->state == $state){
-                return true;
-            }elseif(method_exists($this, $method )){
-                return $this->{$method}();
-            }elseif(defined('self::'. $const)){                
-                return ($this->state == static::$const);
-            }else{
-                return false;
-            }
-        }else{
-            return $this->state == $state;
-        }       
+    public function approveable()
+    {
+        return ($this->approved != 1 || $this->attachments()->where('approved', 0)->count() > 0);
     }
 
-    public function isApprobable(){
-        return (!$this->exists || $this->state == static::STATE_DRAFT);
+    public function scopeApproveable($q)
+    {  
+       $q
+        ->where('approved',0)
+        ->orWhereHas('attachments', function($inneq){
+            $table = $inneq->getModel()->getTable();
+            $inneq->where($table.'.approved', 0);
+        });
+        return $q;
     }
- 
+    
     public function assignedTo(){
         return $this->belongsTo(  User::class, 'assigned_to');
     }

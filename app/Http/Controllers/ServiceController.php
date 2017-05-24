@@ -12,10 +12,15 @@ use App\ORM\ServiceType;
 use App\ORM\Attachment;
 use App\ORM\Well;
 use App\ORM\Section;
+use App\ORM\User;
+use App\ORM\Revision;
 
 
 class ServiceController extends Controller
 {
+
+     const MODE_UPDATE = 1;
+    const MODE_CREATE = 2;
 
     protected $repository;
     public $classname;
@@ -54,6 +59,7 @@ class ServiceController extends Controller
             'serviceTypes' => ServiceType::all(),
             'sections' => Section::all(),
             'model' => $model,
+            'user' => \Auth::user(),
             'prewell'=>$prewell
         );
         return view($this->entitiesName.'.create', $data);
@@ -98,36 +104,6 @@ class ServiceController extends Controller
     }
 
     
-    public function store(Request $request)
-    {
-        $model = (new $this->classname);
-        \DB::beginTransaction();    
-        try {
-            $this->repository->save( $model, $request->all());
-            if($request->has('attachments') && is_array($request->get('attachments'))){
-                $attachRepo = new AttachmentRepository();
-                foreach ($request->input('attachments') as $key => $attach) {
-                    try {
-                        $attachRepo->save(new Attachment, $attach);
-                        $this->repository->getEntity()->attachments()->save($attachRepo->getEntity());
-                        $attachRepo->getEntity()->save();
-                    }catch (\App\Repository\Exception\ValidatorException $e) {
-                        \DB::rollback();
-                        return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
-                    }catch (\App\Repository\Exception\SaveException $e) {
-                       \DB::rollback(); 
-                        return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
-                    }
-                }
-            }
-            \DB::commit(); 
-            return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route($this->entityName.'.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
-        } catch (\App\Repository\Exception\ValidatorException $e) {
-            \DB::rollback();
-           return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
-        }
-    }
-
 
     /**
      * Display the specified resource.
@@ -163,32 +139,128 @@ class ServiceController extends Controller
     }
 
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  $this->classnameUpdateRequest $request
-     * @param  string            $id
-     *
-     * @return Response
-     */
-    public function update(Request $request, $id)
-    {
+    public function store(Request $request){
+        $user = \Auth::user();
+        $user->canOrFail('create', Model::class );
+        $model = new Model();
+        return $this->save($request, $model, static::MODE_CREATE);
+    }
 
-        $model = $this->repository->whereKey($id)->first();
+    public function update(Request $request, $id){
+        $model = Model::find($id);
         if(!$model){
-            \App::abort(404);
+            abort(404);
         }
-
+        $user = \Auth::user();
+        $user->canOrFail('update', $model );
+         return $this->save($request, $model, static::MODE_UPDATE);
+    }
+    
+    public function save(Request $request, $model, $mode )
+    {
+        
         \DB::beginTransaction();
         try {
-            $this->repository->save($model, $request->all());
+            $user = \Auth::user(); 
+            if($request->has('action') && ( $request->input('action') == 'approve'  || $request->input('action') == 'createapproved' ) ){
+                if( 
+                    ($mode == static::MODE_UPDATE && $user->can('approve', $model) )  || 
+                    ($mode == static::MODE_CREATE && $user->can('createapproved', Model::class) ) 
+                ){
+                    $this->repository->save($model, $request->all(), false);
+                    $model  = $this->repository->getEntity();
+                    $model->approveIfNeeded($user);
+                }else{
+                    $e = new \App\Exceptions\Exception();
+                    $e->setContext(['Acción no autorizada. 1']);
+                    throw $e;
+                }
+            }elseif(
+                $request->has('action') && 
+                (
+                    $request->input('action') == 'sendapprove'  || 
+                    (
+                        $request->input('action') == 'createsendapprove' && 
+                        $request->has('assigned_to')
+                    )
+                )
+                
+            ){ 
+                
+                if(
+                    ($mode == static::MODE_UPDATE && $user->can('sendapprove', $model) )  || 
+                    ($mode == static::MODE_CREATE && $user->can('createsendapprove', Model::class) ) 
+                ){
+                    $this->repository->save($model, $request->all(), false);
+                    $model  = $this->repository->getEntity();
+                    if( ! $model->assignedTo){
+                        $assigned = User::find($request->input('assigned_to'));
+                        if(!$assigned){
+                            $e = new \App\Exceptions\Exception();
+                            $e->setContext(['El usuario asignado no es válido']);
+                            throw $e;
+                        }
+                        if(!$assigned->inMyLocation($model->well->location)){
+                            $e = new \App\Exceptions\Exception();
+                            $e->setContext(['El usuario asignado no es válido']);
+                            throw $e;
+                        }
+                        $model->assigned_to = $assigned->getKey();
+                    }
+                    $model->state = Model::STATE_REVIEWING;
+                    $model->draft = 0;
+                    
+                }else{
+                    $e = new \App\Exceptions\Exception();
+                    $e->setContext(['Acción no autorizada. 2']);
+                    throw $e;
+                }                
+            }elseif(
+                ($mode == static::MODE_UPDATE && $user->can('draft', $model) )  || 
+                ($mode == static::MODE_CREATE && $user->can('createdraft', Model::class) ) 
+            ){
+                $this->repository->save($model, $request->all(), false);
+                $model  = $this->repository->getEntity();
+                $model->state = 0;
+                $model->draft = 1;               
+            }elseif(
+                ($mode == static::MODE_UPDATE && $user->can('fulledit', $model) )
+            ){
+                $this->repository->save($model, $request->all(), false);
+                $model  = $this->repository->getEntity();
+                $model->state = 0;
+                $model->draft = 0;
+                $model->approved = 1;                
+            }else{
+                $e = new \App\Exceptions\Exception();
+                $e->setContext(['Acción no autorizada.']);
+                throw $e;
+            }
+            $model->save();
+                     
             if($request->has('attachments') && is_array($request->get('attachments'))){
                 $attachRepo = new AttachmentRepository();
                 foreach ($request->input('attachments') as $key => $attach) {
                     try {
                         $attachRepo->save(new Attachment, $attach);
                         $this->repository->getEntity()->attachments()->save($attachRepo->getEntity());
-                        $attachRepo->getEntity()->save();
+                        $att = $attachRepo->getEntity();
+                        if(
+                            $request->input('action') == 'approve' || 
+                            $request->input('action') == 'createapproved' ||
+                            $request->input('action') == 'fulledit' 
+                        ){
+
+                            $att->approved_by = $model->approved_by;                            
+                            $att->approved_at = date('Y-m-d');                            
+                            $att->approved =1;                            
+                        }
+                        if($request->input('action') == 'sendapprove' || $request->input('action') == 'createsendapprove'){
+                            $att->assigned_to = $model->assigned_to;                            
+                        }
+                        $att->state = $model->state;
+                        $att->draft = $model->draft;
+                        $att->save();                       
                     }catch (\App\Repository\Exception\ValidatorException $e) {
                         \DB::rollback();
                         return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
@@ -197,26 +269,33 @@ class ServiceController extends Controller
                         return response()->json( ['messages'=>['messages'=> [$e->getMessage()], 'type'=>'danger']] , 422);
                     }
                 }
-
             }
-            if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
-                $deleteds = [];
-                foreach ($request->input('old_attachments') as $key => $attach) {
-                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
-                        $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
-                        if($attachment){
-                            $attachment->delete();
-                            $deleteds[] = $attachment->getKey();
-                        }
-                    }
-                }
+            // if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
+            //     $deleteds = [];
+            //     foreach ($request->input('old_attachments') as $key => $attach) {
+            //         if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
+            //             $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
+            //             if($attachment){
+            //                 $attachment->delete();
+            //                 $deleteds[] = $attachment->getKey();
+            //             }
+            //         }
+            //     }
                
-            }                
+            // }            
             \DB::commit(); 
-            return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route($this->entityName.'.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
-        } catch (\App\Repository\Exception\ValidatorException $e) {
+            return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('service.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
+        }catch(\App\Exceptions\Exception $e){
+            \DB::rollback();
+            return response()->json( ['messages'=>['messages'=>$e->getContext(), 'type'=>'danger']] , 422);
+        }catch (\App\Repository\Exception\ValidatorException $e) {
             \DB::rollback();
            return response()->json( ['messages'=>['messages'=>array_values($e->validator->messages()->all() ), 'type'=>'danger']] , 422);
+        }catch(\Exception $e){
+            \DB::rollback();
+            throw $e;
+            
+            //return response()->json( ['messages'=>['messages'=>$e->getMessage(), 'type'=>'danger']] , 422);
         }
     }
 
@@ -248,7 +327,38 @@ class ServiceController extends Controller
             
             return response()->json(['error'], 401);    
         }
+    }
 
-        
+    public function revision(Request $request, $id){
+        if($id){
+            $input = $request->all();
+            $model = Model::find($id);
+            if(!$model){
+                abort(404);
+            }
+            $user = \Auth::user();
+            $user->canOrFail('review', $model);
+            $revision = new Revision();
+            $revision->content = $request->input('content', '');
+            $model->revisions()->save($revision);
+            $model->state = Model::STATE_APPROVING;
+            $model->save();
+
+            return \Response::json(
+                    [
+                        'messages'=>
+                            [
+                                'messages'=>
+                                    [
+                                        'Revision enviada'
+                                    ], 
+                                'type'=>'success', 
+                                
+                            ],
+                        'redirect'=>route($this->entityName.'.show',['id'=>$model->getKey()]),
+                        'delay'=>500
+                    ]
+                );
+        }
     }
 }

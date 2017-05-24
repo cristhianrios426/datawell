@@ -38,7 +38,7 @@
                                             <div class="form-group">
                                                 <label >Tipo de servicio <strong class="require-mark">*</strong></label>
                                                 <div class="form-control">
-                                                  {{{ $model->serviceType ? $model->serviceType->name : '' }}}
+                                                  {{{ $model->type ? $model->type->name : '' }}}
                                                 </div>
                                             </div>
                                         </div>
