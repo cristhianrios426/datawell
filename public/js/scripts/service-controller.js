@@ -108,5 +108,8 @@
 		}
 	}, 300);
 
-
+	$('*[datepicker]').datepicker({
+		format: 'yyyy-mm-dd',
+		language:'es'
+	})
 })(window, jQuery);

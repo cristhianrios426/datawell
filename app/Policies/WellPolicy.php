@@ -35,6 +35,10 @@ class WellPolicy
         if($user->isSuperAdmin()){
             return true;
         }
+        if($user->isAdmin()){
+            return  $model->location && $model->location->inLocation($user->location);
+        }
+        return false;
         
     }
 
@@ -100,6 +104,7 @@ class WellPolicy
     }
 
     public function draft(User $user, Well $model){              
+        //dd  ($model->createdBy , ( $model->createdBy->getKey() == $user->getKey()) , $model->draft == 1);
         return  ($model->createdBy && ( $model->createdBy->getKey() == $user->getKey()) && $model->draft == 1);
         
     }
@@ -109,48 +114,26 @@ class WellPolicy
     public function approve(User $user,  Well $model)
     {
         
-        if($model->approved == 1){
-            return false;
-        }
-
+        $approveable = $model->approveable();
         if($user->isSuperAdmin()){
-            return true;
+            $authorized = true;
+        }elseif($user->isEngineer()){
+            $authorized  =  false;
+        }elseif($user->isAdmin()){
+            $authorized  = ($model->location && $model->inLocation($user->location));            
+        }elseif($user->isSupervisor()){
+            $authorized =  $model->isAssignedTo($user) || $this->draft($user, $model) ;
+        }else{
+            $authorized = false;
         }
-        if($user->isEngineer()){
-            return false;
-        }
-        if($user->isAdmin()){
-            if($model == NULL){
-                return true;
-            }else{
-                return ($model->location && $model->inLocation($user->location));
-            }
-        }
-        
-        if($user->isSupervisor()){
-            return (
-                (
-                    $model->assignedTo && 
-                    $model->assignedTo->getKey() == $user->getKey() && 
-                    $model->approved != 1 
-                )  ||
-                (
-                    $this->draft($user, $model)
-                )             
-            );
-        } 
-        return false;
+        return ($approveable && $authorized);
     }
 
     public function review(User $user, Well $model){
 
-        $reviewable = (
-                ($model->state == Well::STATE_APPROVING  || $model->state == Well::STATE_REVIEWING  ) &&
-                $model->approved != 1
-        );
-
+        $reviewable = $model->reviewable();
         if($user->isSupervisor()){
-            $authorized = $model->assignedTo && ($model->assignedTo->getKey() == $user->getKey());    
+            $authorized = $model->isAssignedTo($user);    
         }else if($user->isAdmin()){
             $authorized = $model->location && $model->location->inLocation($user->location);    
         }else if($user->isSuperAdmin()){
@@ -159,17 +142,34 @@ class WellPolicy
             $authorized = false;
         }
 
+        //dd ($authorized , $reviewable);
         return ($authorized && $reviewable);
     }
 
     public function sendapprove(User $user, Well $model)
     {
-        $approveable = (
-            $model->state != Well::STATE_APPROVING && 
-            $model->approved != 1
-        );
-        $authorized = $this->draft($user,  $model);
-        return ($authorized && $approveable);
+        
+        
+
+        $approving = $model->approving();
+        if($user->isSupervisor()){            
+            $authorized = ( !$model->approving() && !$model->reviewing() );    
+        }else if($user->isAdmin() || $user->isEngineer()){
+            $authorized = $model->location && $model->inLocation($user->location);    
+            if($user->isEngineer()){
+                if($model->reviewing()){
+                    $authorized = $model->wasSentTo($user);
+                }else{
+                    $authorized = true;
+                }
+            }
+        }else if($user->isSuperAdmin()){
+            $authorized = true;
+        }else{
+            $authorized = false;
+        }
+        //dd ($authorized , $approveable , !$blocked , !$model->isAssignedTo($user));
+        return ($authorized && !$approving);
     }
     
     public function fulledit(User $user, Well $model){
@@ -179,9 +179,9 @@ class WellPolicy
         if($user->isAdmin()){
             $location = Location::find($model->location_id);
             if(!$location){
-                    return false;
+                return false;
             }
-            return ($location->inLocation($user->location) && $model->approved == 1);  
+            return ($location->inLocation($user->location) && $model->approved == 1);
             
         }
         return false;
@@ -202,47 +202,13 @@ class WellPolicy
         if($user->isSuperAdmin()){
             return true;
         }
-        if($user->isEngineer()){
-            
-            return (
-                $this->draft( $user, $model) ||
-
-                (
-                    $model->createdBy &&
-                    $model->createdBy->getKey() == $user->getKey()  &&
-                    $model->approved != 1 &&
-                    $model->state == Well::STATE_REVIEWING
-                )
-            );              
-        }
-        if($user->isSupervisor()){
-
-            $r = (
-                     $this->draft( $user, $model) ||
-                     (
-                        $model->assignedTo && 
-                        $model->assignedTo->getKey() == $user->getKey() &&
-                        $model->approved != 1 
-                        
-                     )
-                );
-            return $r;
-        }
-
-        if($user->isAdmin()){
-            if($this->draft( $user, $model)){
-                return true;
-            }else{
-                $location = Location::find($model->location_id);
-                if(!$location){
-                    return false;
-                }
-                return $location->inLocation($user->location);  
-            }
+        if($user->isEngineer() || $user->isSupervisor() || $user->isAdmin()){
+            return ($model && $model->location && $model->inLocation($user->location) );
         }
         return false;
     }
 
+    
      /**
      * Determine whether the user can delete the location.
      *
@@ -255,9 +221,27 @@ class WellPolicy
         if(  $user->isSuperAdmin()){
             return true;
         }
-
-
         return false;
     }
+
+    public function sendapprovefiles(User $user, Well $model)
+    {        
+        $blocked = $model->blocked();
+        if($user->isSupervisor()){
+            $authorized = $model->isAssignedTo($user);    
+        }else if($user->isAdmin()){
+            $authorized =  $model->well &&  $model->well->location && $model->well->inLocation($user->location);    
+        }else if($user->isSuperAdmin()){
+            $authorized = true;
+        }else if($user->isEngineer()){
+            $authorized = $model->createdBy && $model->createdBy->getKey() == $user->getKey();
+        }else{
+            $authorized = false;
+        }
+        return ($authorized && !$blocked && !$model->isAssignedTo($user));
+    }
+
+    
+    
 
 }   

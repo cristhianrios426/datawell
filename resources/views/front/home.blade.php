@@ -32,72 +32,56 @@
 											</div>
 											<div class="col-xs-12 ">
 												<div class="form-group form-group-xs">
-										       		<select name="id_well_type[]" multiple class="selectpicker form-control" title="Tipos de servicio">
-										       			
+										       		<select name="service_type_id[]" multiple class="selectpicker form-control" title="Tipos de servicio">										       			
 										       			@foreach ($serviceTypes as $m)
-										       				<option  {{ ( isset($query['id_well_type']) && in_array($m->getKey(), $query['id_well_type']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option  {{ ( isset($query['service_type_id']) && in_array($m->getKey(), $query['service_type_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
+										      	</div>
+											</div>
+											
+											<div class="col-xs-12 ">
+
+												<div class="form-group form-group-xs">
+										       		<select  name="country_id" data-value="{{ isset($query['country_id']) ? $query['country_id'] : '' }}" class="form-control selectpicker " title="Pa&iacute;s" select-country >
+										       			@foreach ($locations as $location)
+										       				<option {{ ( isset($query['country_id']) && $query['country_id'] == $location->getKey() ? 'selected' : '' ) }} value="{{{ $location->getKey() }}}">{{{ $location->name }}}</option>
+										       			@endforeach
+										       		</select>
+										      	</div>
+											</div>
+											
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">										       		
+										       		<select data-value="{{ isset($query['state_id']) ? $query['state_id'] : '' }}" select-state location-list="location" name="state_id" class="form-control selectpicker " title="Estado/Depart" ></select>
+										      	</div>
+											</div>
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">
+										       		<select data-value="{{ isset($query['city_id']) ? $query['city_id'] : '' }}" select-city location-list="location"  name="city_id" class="form-control selectpicker " title="Municipio" ></select>
+										      	</div>
+											</div>
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">
+										       		<select data-none-selected-text="Regiones" data-value="{{ isset($query['area_id'])  ?  json_encode($query['area_id']) : '' }}" name="area_id[]" depends-location location-list="area" multiple  title="Regiones" class=" selectpicker form-control"></select>
+										      	</div>
+											</div>
+											
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">													
+										       		<select title="Campos" name="camp_id[]" data-value="{{ isset($query['camp_id'])  ?  json_encode($query['camp_id']) : '' }}" depends-location location-list="camp" multiple class=" selectpicker form-control"></select>
+										      	</div>
+											</div>
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">
+										       		<select name="cuenca_id[]" data-value="{{ isset($query['cuenca_id'])  ?  json_encode($query['cuenca_id']) : '' }}" title="Cuencas"  depends-location location-list="cuenca" multiple class=" selectpicker form-control"></select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 ">
 												<div class="form-group form-group-xs">													
-										       		<select name="country" class="selectpicker form-control">
-										       			<option value="" {{ !isset($query['id_country']) ? 'selected' : '' }} >Pa&iacute;s</option>
-										       			<option value=""></option>
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">													
-										       		<select name="id_state" class=" selectpicker form-control">
-														<option  >Estado/Depart/Provincia</option>
-										       			<option value=""></option>
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">
-										       		<select name="id_city" class=" selectpicker form-control">
-										       			<option value="">Municipio</option>
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">
-										       		<select name="id_area[]" multiple class=" selectpicker form-control" title="Región">
-										       			
-										       			@foreach ($areas as $m)
-										       				<option  {{ ( isset($query['id_area']) && in_array($m->getKey(), $query['id_area']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
-										       			@endforeach
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">
-										       		<select name="id_cuenca[]" multiple class=" selectpicker form-control"  title="Cuenca">
-										       			@foreach ($cuencas as $m)
-										       				<option {{ ( isset($query['id_cuenca']) && in_array($m->getKey(), $query['id_cuenca']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
-										       			@endforeach
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">
-													
-										       		<select name="id_camp[]" multiple class=" selectpicker form-control"  title="Campo">
-										       			
-										       			@foreach ($camps as $m)
-										       				<option value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
-										       			@endforeach
-										       		</select>
-										      	</div>
-											</div>
-											<div class="col-xs-12 ">
-												<div class="form-group form-group-xs">													
-										       		<select name="id_operator[]" multiple class="selectpicker form-control" title="Operador">
+										       		<select name="operator_id[]" title="Operadores" multiple class="selectpicker form-control">										       			
 										       			@foreach ($operators as $m)
-										       				<option {{ ( isset($query['id_operator']) && in_array($m->getKey(), $query['id_operator']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['operator_id']) && in_array($m->getKey(), $query['operator_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
@@ -105,28 +89,42 @@
 
 											<div class="col-xs-12 ">
 												<div class="form-group form-group-xs">
-										       		<select name="id_type[]" multiple class="selectpicker form-control" title="Tipo de pozo">
-										       			
+										       		<select name="well_type_id[]" title="Tipos de pozo" multiple class="selectpicker form-control">
 										       			@foreach ($types as $m)
-										       				<option {{ ( isset($query['id_type']) && in_array($m->getKey(), $query['id_type']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       				<option {{ ( isset($query['well_type_id']) && in_array($m->getKey(), $query['well_type_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
 										       		</select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 ">
 												<div class="form-group form-group-xs">
-														
-													<label for="">Profundidad TVD (ft)</label>
-										       		<select name="deep_range" class="form-control">
+										       		<select title="Profundidad TVD (ft)" name="profundidad_tvd" class="selectpicker form-control">
 										       			<option value="">Selecciona</option>
-										       			<option value="<5000"> Menor que 5.000</option>
-										       			<option value="5000-10000">Entre 5.000 y 10.000</option>
-										       			<option value="10000-15000">Entre 10.000 y 15.000</option>
-										       			<option value="15000-20000">Entre 15.000 y 20.000</option>
-										       			<option value="20000-25000">Entre 20.000 y 25.000</option>
-										       			<option value=">25000">Mayor que 25.000</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '0,5000' ? 'selected="selected"' : '' ) }} value="0,5000">[0 - 5.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '5000,10000' ? 'selected="selected"' : '' ) }} value="5000,10000">[5.000,10.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '10000,15000' ? 'selected="selected"' : '' ) }} value="10000,15000">[10.000,15.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '15000,20000' ? 'selected="selected"' : '' ) }} value="15000,20000">[15.000,20.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '20000,25000' ? 'selected="selected"' : '' ) }} value="20000,25000">[20.000,25.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '25000,1000000' ? 'selected="selected"' : '' ) }} value="25000,1000000">[25.000,>)</option>
 										       		</select>
-
+										      	</div>
+											</div>
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">
+										       		<select name="deviation_id[]" title="Tipos de desviaci&oacute;n" multiple class="selectpicker form-control">
+										       			@foreach ($deviations as $m)
+										       				<option {{ ( isset($query['deviation_id']) && in_array($m->getKey(), $query['deviation_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       			@endforeach
+										       		</select>
+										      	</div>
+											</div>										
+											<div class="col-xs-12 ">
+												<div class="form-group form-group-xs">
+										       		<select name="section_id[]" title="Secciones" multiple class="selectpicker form-control">
+										       			@foreach ($sections as $m)
+										       				<option {{ ( isset($query['section_id']) && in_array($m->getKey(), $query['section_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
+										       			@endforeach
+										       		</select>
 										      	</div>
 											</div>
 										</div>
@@ -163,64 +161,77 @@
 	<script src="{{ asset('js/scripts/index-well-controller.js') }}"></script>
 	<script src="{{ asset('js/scripts/jquery.well-map.js') }}"></script>
 	<script src="{{ asset('vendors/mustache/mustache.min.js') }}"></script>
-	<script type="text/template" id="poup-template">
-		<table style="min-width: 200px;">
-			<tr>
-				<td colspan="2" style="text-align: center;"><strong><h5>@{{ name }}</h5></strong></td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Tipo de pozo </strong></td>
-				<td>@{{ type.name }}</td>
-			</tr>			
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Coordenada en X </strong></td>
-				<td>@{{ x }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Coordenada en Y</strong></td>
-				<td>@{{ y }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Coordenada en Z</strong></td>
-				<td>@{{ z }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Sistema de coordenadas</strong></td>
-				<td>@{{ coor_sys.name }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>profundidad TVD (ft)</strong></td>
-				<td>@{{ profundidad_tvd }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>profundidad MD (ft)</strong></td>
-				<td>@{{ profundidad_tvd }}</td>
-			</tr>			
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Well kb elev</strong></td>
-				<td>@{{ well_kb_elev }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Rotaty elev</strong></td>
-				<td>@{{ rotaty_elev }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Regi&oacute;n</strong></td>
-				<td>@{{ area.name }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Cuenca</strong></td>
-				<td>@{{ cuenca.name }}</td>
-			</tr>
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Bloque</strong></td>
-				<td>@{{ block.name }}</td>
-			</tr>
-		</table>
-	</script>
+	<script src="{{ asset('vendors/moment/moment.js') }}"></script>
+	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
+	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+	@include('wells.bubble-map-template-home')
 	<script>
-		var models ={!! $models->toJson() !!}
-		console.log(models);
-		$('#map').wellMap({type: 'google', data: models.data, popUpTemplate:$('#poup-template').html() });
+		var all ={!! $all->toJson() !!}
+	</script>
+	<script>		
+		if(!all.length){
+			alert('No se encontraron resultados');
+		}
+		
+		$('#map').wellMap({type: 'google', data: (all && all.length ? all : []), popUpTemplate:$('#poup-template').html() });
+		
+		setTimeout(function() {
+			$('select[select-country]').on('locationSelect.sent', function(){				
+				$('select[select-state], select[select-city]').html('');
+			});
+			$('select[select-state]').on('locationSelect.sent', function(){
+				$('select[select-city]').html('');
+			});
+
+			$('select[select-state]').on('locationSelect.change', function(){
+				var self = this;
+				setTimeout(function() {
+
+					$(self).trigger('change');
+				}, 100);
+			});
+
+			$('select[select-city]').on('locationSelect.change', function(){
+				setTimeout(function() {
+					$(this).trigger('change');
+				}, 100);
+			});
+
+			$('select[select-country]').locationSelect({
+				initRun: true,
+				dependsSelector: 'select[depends-location], select[select-state]'
+			});
+			$('select[select-state]').locationSelect({
+				initRun: false,
+				sendNull: false,
+				dependsSelector: 'select[depends-location], select[select-city]'
+			});
+
+			$('select[select-city]').locationSelect({
+				initRun: false,
+				sendNull: false,
+				dependsSelector: 'select[depends-location]'
+			});
+		}, 500);
+		$('[daterangepicker]').daterangepicker({
+				 autoUpdateInput: false,
+				locale: {
+		      		format: 'YYYY-MM-DD'
+		      	},ranges: {
+		           '\u00DAltimos 30 Days': [moment().subtract(29, 'days'), moment()],
+		           'Este mes': [moment().startOf('month'), moment().endOf('month')],
+		           'Ultimo mes': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+		           'Ultimo a\u00F1o': [moment().startOf('year'), moment()]
+		        }
+		});
+		$('[daterangepicker]').on('apply.daterangepicker', function(ev, picker) {
+	      $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+	    });
+
+	    $('[daterangepicker]').on('cancel.daterangepicker', function(ev, picker) {
+	      $(this).val('');
+	    });
+
+
 	</script>
 @stop

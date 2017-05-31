@@ -1,6 +1,7 @@
 <?php 
 namespace App\Repository;
 use App\ORM\Well;
+use App\ORM\Location;
 class WellRepository extends Base{
 
 	protected $fillable = [
@@ -46,7 +47,7 @@ class WellRepository extends Base{
 			'area_id'=>'required|exists_eloquent:\\App\\ORM\\Area',
 			'block_id'=>'required|exists_eloquent:\\App\\ORM\\Block',
 			'well_type_id'=>'required|exists_eloquent:\\App\\ORM\\WellType',
-			'deviation_id'=>'required|exists_eloquent:\\App\\ORM\\Desviation',
+			'deviation_id'=>'required|exists_eloquent:\\App\\ORM\\Deviation',
 			'operator_id'=>'required|exists_eloquent:\\App\\ORM\\Operator',
 			'drilled_at'=>'required|date',
 		];
@@ -63,7 +64,21 @@ class WellRepository extends Base{
             $this->orderBy($request->input('sort'), $request->input('sort_type', 'desc'));
         }
 
-        $listCriteria = ['area_id','operator_id','camp_id','well_type_id', 'cuenca_id']; 
+        $location = NULL;
+        foreach (['country_id', 'state_id', 'city_id'] as $key => $current_location){
+        	if($request->has($current_location) && $request->input($current_location) != ''){
+        		$testLocation = Location::find($request->input($current_location));
+        		if($testLocation){
+        			$location = $testLocation;
+        			break;
+        		}
+        	}
+        }
+        if( $location){
+        	$this->inLocation($location);
+        }
+
+        $listCriteria = ['area_id','operator_id','camp_id','well_type_id', 'cuenca_id', 'deviation_id']; 
         foreach ($listCriteria as $key => $criteria) {
             if($request->input($criteria, false) != false){
                 $value = $request->input($criteria); 
@@ -81,22 +96,32 @@ class WellRepository extends Base{
             }
         }
 
+
         if($request->input('name', '') != ''){
             $this->where('name','LIKE', '%'.$request->input('name').'%');
         }
+
+        if($request->has('profundidad_tvd')){
+        	$numbers = $request->input('profundidad_tvd');
+        	$range = explode(',',$numbers );
+        	$this->where('profundidad_tvd', '>=', $range[0])->where('profundidad_tvd', '<', $range[1]);
+        }
         $byServices = false;
-        foreach (['id_service_type', 'ended_at'] as $key => $value) {
+        foreach (['service_type_id', 'ended_at', 'section_id'] as $key => $value) {
         	if($request->has($value)){
         		$byServices = true;
         		break;
         	}
         }
         if($byServices){
-        	$request->whereHas('services', function($q) use ($request){
+        	$this->whereHas('services', function($q) use ($request){
         		$table = $q->getModel()->getTable();
-        		if($request->has('id_service_type') && is_array($request->input('id_service_type')) ){
-        			$q->whereIn($table.'.id_service_type', $request->input('id_service_type'));
+        		if($request->has('service_type_id') && is_array($request->input('service_type_id')) ){
+        			$q->whereIn($table.'.service_type_id', $request->input('service_type_id'));
         		}
+                if($request->has('section_id') && is_array($request->input('section_id')) ){
+                    $q->whereIn($table.'.section_id', $request->input('section_id'));
+                }
         		if($request->has('ended_at')){
         			$range = $request->input('ended_at');
         			$rangeArray = explode(' - ', $range);

@@ -10,7 +10,7 @@ class LocationObserver{
 	public function updated($model){
 		if(static::$listening){
 			static::$listening = false;
-			if($this->backup['parent_id'] != $model->parent_id){
+			if($this->backup['parent_id'] != $model->parent_id || $this->backup['name'] != $model->name){
 				$model->reindex();
 			}	
 			static::$listening = true;		

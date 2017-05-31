@@ -156,8 +156,8 @@
             <label >Desviación  <strong class="require-mark">*</strong></label>
             <select name="deviation_id" id="" class="required form-control">
                 <option value="">Selecciona</option>
-                @foreach ($desviations as $desviation)
-                    <option {{ ($model->deviation_id == $desviation->getKey() ? 'selected' : '' ) }} value="{{{ $desviation->getKey() }}}">{{{ $desviation->name }}}</option>
+                @foreach ($deviations as $deviation)
+                    <option {{ ($model->deviation_id == $deviation->getKey() ? 'selected' : '' ) }} value="{{{ $deviation->getKey() }}}">{{{ $deviation->name }}}</option>
                 @endforeach
             </select>
         </div>
@@ -179,7 +179,7 @@
     <div class="col-sm-6 col-xs-12">
         <div class="form-group">
             <label >Fecha de perforaci&oacute;n <strong class="require-mark">*</strong></label>
-            <input type="text" name="drilled_at" class="required form-control" value="{{{ $model->drilled_at }}}">   
+            <input type="text" name="drilled_at" datepicker class="required form-control" value="{{{ $model->drilled_at->format('Y-m-d') }}}">   
         </div>
     </div>
 </div>

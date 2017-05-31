@@ -25,18 +25,17 @@
 					var layer = new L.TileLayer(osmUrl, { attribution: osmAttrib});	
 				}
 				
-				var map = L.map(el).setView([51.505, -0.09], 15);
+				var map = L.map(el).setView([4.386951, -72.872222],5);
 				map.addLayer(layer);
 
 				this.markers = [];
 				this.latlongs = [];
-				if(this.options.data){
+				if(this.options.data && this.options.data.length > 0){
 					$.each(this.options.data, function(idx, obj){
-						if(obj.lat  && obj.long){							
+						if(obj.lat != ''  && obj.long != ''){							
 							var latlong = L.latLng(obj.lat, obj.long);
 							var marker = L.marker(latlong);
 							var output = Mustache.render(self.options.popUpTemplate, obj);
-							console.log(output);
 							marker.bindPopup(output);
 							self.markers.push(marker);
 							self.latlongs.push(latlong);
@@ -44,7 +43,9 @@
 						}						
 					});					
 					this.bounds = L.latLngBounds(self.latlongs);
-					map.setView(this.bounds.getCenter(), 5);
+					var rzoom = (map.getBoundsZoom(this.bounds) - 1) ;
+					var zoom = rzoom > 5 ? 5 : rzoom;
+					map.setView(this.bounds.getCenter(), zoom);
 				}
 
 				this.map = map;

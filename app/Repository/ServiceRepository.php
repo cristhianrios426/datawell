@@ -4,10 +4,11 @@ use \App\ORM\Service as Model;
 class ServiceRepository extends Base{
 
 	protected $fillable = [
-		'name',
+		//'name',
 		'description',
 		'ended_at',
 		'section_id',
+		'client_id',
 		'well_id',
 		'service_type_id',
 	];
@@ -23,16 +24,18 @@ class ServiceRepository extends Base{
 			'ended_at'=>'fecha de terminación',
 			'section_id'=>'tipo de sección',
 			'well_id'=>'pozo',
+			'client_id'=>'cliente',
 			'service_type_id'=>'tipo de servicio',			
 		];
 	}	
 
 	public function getRules($input){
 		return [
-			'name'=>'required',
+			//'name'=>'required',
 			'description'=>'sometimes|string|nullable',
 			'ended_at'=>'required|date',
 			'section_id'=>'required|exists_eloquent:\\App\\ORM\\Section',
+			'client_id'=>'required|exists_eloquent:\\App\\ORM\\Client',
 			'well_id'=>'required|exists_eloquent:\\App\\ORM\\Well',
 			'service_type_id'=>'required|exists_eloquent:\\App\\ORM\\ServiceType',			
 		];

@@ -10,13 +10,15 @@ use App\ORM\Camp;
 use App\ORM\Cuenca;
 use App\ORM\Block;
 use App\ORM\WellType;
-use App\ORM\Desviation;
+use App\ORM\Deviation;
 use App\ORM\ServiceType;
 use App\ORM\User;
 use App\ORM\Operator;
 use App\ORM\Attachment;
 use App\ORM\Location;
 use App\ORM\Revision;
+use App\ORM\Section;
+
 use App\ORM\Well;
 //use App\ORM\ServiceType;
 class WellController extends Controller
@@ -35,7 +37,7 @@ class WellController extends Controller
         $this->repository = new Repository();
         $this->classname = Model::class;
 
-         $this->entityName ="well";
+        $this->entityName ="well";
         $this->entitiesName ="wells";
         \View::share ( 'classname',$this->classname);
         \View::share ( 'entityLabel',  'pozo');
@@ -53,21 +55,26 @@ class WellController extends Controller
         /**/
 
         $this->repository->filter($request);
+        $this->repository->filterUser(\Auth::user());
         $this->repository->with(['cuenca', 'area', 'operator', 'camp', 'type' , 'block','deviation' , 'coorSys']);
         $models = $this->repository->paginate(12);
+        $all = $this->repository->get();
         if (request()->wantsJson()) {
             return response()->json($models);
         }
 
         $data = array(
+            'all'=>$all,
             'coorSystems' => CoordinateSys::all(),
             'areas' => Area::all(),
             'camps' => Camp::all(),
             'cuencas' => Cuenca::all(),
             'blocks' => Block::all(),
             'types' => WellType::all(),
-            'desviations' => Desviation::all(),
+            'deviations' => Deviation::all(),
             'operators' => Operator::all(),
+            'deviations' => Deviation::all(),
+            'sections' => Section::all(),
             'models' => $models,
             'query' =>$query,
             'sortLinks' => $sortLinks,
@@ -97,7 +104,7 @@ class WellController extends Controller
             'cuencas' => Cuenca::all(),
             'blocks' => Block::all(),
             'types' => WellType::all(),
-            'desviations' => Desviation::all(),
+            'deviations' => Deviation::all(),
             'operators' => Operator::all(),
             'locations' => ($user->isSuperadmin() ? Location::fullTree()->orderBy('name')->get() : Location::fullTree()->inUserLocation($user)->orderBy('name')->get() ),
             'model' => $model,
@@ -132,8 +139,7 @@ class WellController extends Controller
         
         \DB::beginTransaction();
         try {
-            $user = \Auth::user();            
-            
+            $user = \Auth::user();
             if($request->has('action') && ( $request->input('action') == 'approve'  || $request->input('action') == 'createapproved' ) ){
                 if( 
                     ($mode == static::MODE_UPDATE && $user->can('approve', $model) )  || 
@@ -141,10 +147,7 @@ class WellController extends Controller
                 ){
                     $this->repository->save($model, $request->all(), false);
                     $model  = $this->repository->getEntity();
-                    $model->state = 0;
-                    $model->approved = 1;
-                    $model->draft = 0;
-                    $model->approved_by = $user->getKey();
+                    $model->approveIfNeeded($user);
                 }else{
                     $e = new \App\Exceptions\Exception();
                     $e->setContext(['Acción no autorizada. 1']);
@@ -181,8 +184,7 @@ class WellController extends Controller
                         }
                         $model->assigned_to = $assigned->getKey();
                     }
-                    $model->state = Model::STATE_APPROVING;
-                    $model->draft = 0;
+                    $model->sendApprove($user);
                     
                 }else{
                     $e = new \App\Exceptions\Exception();
@@ -211,8 +213,20 @@ class WellController extends Controller
                 $e->setContext(['Acción no autorizada. 3']);
                 throw $e;
             }
-            $model->save();
-                     
+            
+                    
+            if(
+                $request->input('action') == 'approve' || 
+                $request->input('action') == 'createapproved' ||
+                $request->input('action') == 'fulledit' 
+            ){
+
+                $model->attachments()->update([
+                    'approved_by'=>$model->approved_by,
+                    'approved_at'=>date('Y-m-d'),
+                    'approved'=>1,
+                ]);
+            }
             if($request->has('attachments') && is_array($request->get('attachments'))){
                 $attachRepo = new AttachmentRepository();
                 foreach ($request->input('attachments') as $key => $attach) {
@@ -245,19 +259,20 @@ class WellController extends Controller
                     }
                 }
             }
+            
             if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
-                $deleteds = [];
                 foreach ($request->input('old_attachments') as $key => $attach) {
-                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
+                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){                        
                         $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
-                        if($attachment){
-                            $attachment->delete();
-                            $deleteds[] = $attachment->getKey();
+                        if($attachment && $user->can('delete', $attachment)){                            
+                            $attachment->delete();                           
                         }
                     }
                 }
-               
-            }            
+            }
+            
+            $model->save();
+
             \DB::commit(); 
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('well.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
         }catch(\App\Exceptions\Exception $e){
@@ -284,10 +299,13 @@ class WellController extends Controller
      */
     public function show($id)
     {
-        $model = $this->repository->find($id);
+        $user = \Auth::user();
+        $model = $this->repository->whereKey($id)->with(['services'=>function($q) use ($user){
+               $q->filterUser($user);
+
+        }])->first();
 
         if (request()->wantsJson()) {
-
             return response()->json([
                 'data' => $model,
             ]);
@@ -347,7 +365,20 @@ class WellController extends Controller
             return response()->json(['error'], 401);    
         }
     }
-
+    public function attachments(Request $request, $id){
+       
+            $model = Model::find($id);
+            if(!$model){
+                return  'asdada';
+            }
+            $attachments = $model->attachments()->where('approved', 1)->get();
+            return \View::make('attachments.attachments-modal', [
+                    'name'=>$model->name,
+                    'model'=>$model,
+                    'attachments'=>$attachments
+                ]);
+    }
+    
     public function revision(Request $request, $id){
         if($id){
             $input = $request->all();
@@ -357,12 +388,7 @@ class WellController extends Controller
             }
             $user = \Auth::user();
             $user->canOrFail('review', $model);
-            $revision = new Revision();
-            $revision->content = $request->input('content', '');
-            $model->revisions()->save($revision);
-            $model->state = Well::STATE_REVIEWING;
-            $model->save();
-
+            $model->createRevision($request->input('content', ''));
             return \Response::json(
                     [
                         'messages'=>
@@ -379,5 +405,10 @@ class WellController extends Controller
                     ]
                 );
         }
+    }
+
+    public function pending(){
+        $user = \Auth::user();
+        $table = with(new Well)->getTable();        
     }
 }

@@ -16,7 +16,7 @@
 			crud.setEntity();
 			crud.create($('#modal-model .modal-content'))
 				.then(function(){
-					window.afterCreateView();
+					window.afterCreateView($('#modal-model .modal-content'));
 				});
 		});
 
@@ -25,7 +25,7 @@
 			crud.entity.setId($this.data('edit'));
 			crud.edit($('#modal-model .modal-content'))
 				.then(function(){
-					window.afterEditView();
+					window.afterEditView($('#modal-model .modal-content'));
 				});;
 		});
 		$('body').on('click', '*[data-show]', function(){

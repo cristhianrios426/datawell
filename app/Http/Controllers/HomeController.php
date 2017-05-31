@@ -12,20 +12,42 @@ use App\ORM\Cuenca;
 use App\ORM\Block;
 use App\ORM\WellType;
 use App\ORM\User;
-use App\ORM\Desviation;
+use App\ORM\Deviation;
 use App\ORM\ServiceType;
+use App\ORM\Section;
 use App\ORM\Location;
 use App\ORM\Well;
+use App\ORM\Service;
 use App\ORM\Operator;
 use App\ORM\Attachment;
 
 
+
 class HomeController extends Controller
 {
+
+    public $repository;
     
     public function __construct()
     {
-        //$this->middleware('auth')->except('index');
+        //parent::__construct();
+        $this->middleware('auth')->only(['toApprove', 'toReview','uploadTemporal','serveTemporal','validSupervisor']);
+        
+    }
+
+    public function toApprove(){
+        $user = \Auth::user();
+        return \View::make('app.to-approve',[ 
+            'wells'=> Well::pendingApprove($user)->get(), 
+            'services'=>  Service::pendingApprove($user)->get(), 
+            'user'=>$user]);
+    }
+    public function toReview(){
+        $user = \Auth::user();
+        return \View::make('app.to-review',[ 
+            'wells'=> Well::pendingReview($user)->get(), 
+            'services'=> Service::pendingReview($user)->get(), 
+            'user'=>$user]);
     }
 
     public function index(Request $request)
@@ -41,31 +63,53 @@ class HomeController extends Controller
     public function home(Request $request)
     {   
         
-        $repoWell = new WellRepository();
         $query = $request->all();
+
         $sorts = ['name'];
         $sortLinks  = Model::sortableLinks($query, $sorts);
+        $this->repository = new WellRepository();
+        $this->repository->filter($request);
+        $this->repository->noAuthenticated()->get();
+        $this->repository->with([
+            'cuenca', 
+            'area', 
+            'operator', 
+            'camp', 
+            'type' , 
+            'block',
+            'deviation' , 
+            'location',
+            'coorSys',             
+            'services'=>function($query){
+                $query->select($query->getForeignKeyName(), 'services.id as id', 'service_type_id', 'service_types.name as service_types_name', 'service_types.id as service_types_id');                
+                $query->join('service_types', 'service_type_id', 'service_types.id');                
+                $query->groupBy('service_types_id');                
+                return $query;
+            },
 
-        $repoWell->filter($request);
-        $repoWell->with(['cuenca', 'area', 'operator', 'camp', 'type' , 'block','deviation' , 'coorSys']);
-        $models = $repoWell->paginate(12);
+            ]);
+        $all = $this->repository->get();
+        
         if (request()->wantsJson()) {
             return response()->json($models);
         }
 
         $data = array(
+            'all'=>$all,
             'coorSystems' => CoordinateSys::all(),
             'areas' => Area::all(),
             'camps' => Camp::all(),
             'cuencas' => Cuenca::all(),
             'blocks' => Block::all(),
             'types' => WellType::all(),
-            'desviations' => Desviation::all(),
+            'deviations' => Deviation::all(),
             'operators' => Operator::all(),
-            'models' => $models,
+            'deviations' => Deviation::all(),
+            'sections' => Section::all(),
             'query' =>$query,
             'sortLinks' => $sortLinks,
-            'serviceTypes'=>ServiceType::all()
+            'serviceTypes'=>ServiceType::all(),
+            'locations'=>Location::where('parent_id',0)->get(),
         );
         return view('front.home', $data);
     }
@@ -149,7 +193,7 @@ class HomeController extends Controller
             //return \Response::make($json)->header('Content-Type', 'application/json');
             return \Response::json($response);
         }else{
-            return new \stdClass;
+             return \Response::json([]);
         }
     }
 }

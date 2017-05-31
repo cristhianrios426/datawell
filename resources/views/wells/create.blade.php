@@ -5,6 +5,11 @@
 @section('content')
 <div class="container">
     <form form-save id="save-well" action="{{{ ( !$model->exists  ? route('well.store') : route('well.update',['id'=>$model->getKey()]))  }}}" method="{{{ ( !$model->exists  ? 'POST' : 'PUT' )  }}}">
+         <div class="row">
+            <div class="col-xs-12">
+                @include('wells.state-message', ['model'=>$model])
+            </div>
+        </div>
         <div class="row">
             <div class="col-xs-12">
                 <div class="panel panel-default">
@@ -39,12 +44,17 @@
                                                     @foreach ($model->attachments as $key => $attachment)
                                                         <div class="col-xs-12 col-sm-6">
                                                             <div class="well " data-old-attachment >
+                                                                <div>
+                                                                    <span class="label label-{{ $attachment->approved ? 'success' : 'warning' }}">{{ $attachment->approved ? 'Aprobado' : 'No aprobado' }}</span>
+                                                                </div>
                                                                 <a href="{{{ $model->routeToAttachment($attachment->id) }}}" data-url target="_blank">
                                                                     <div data-name="">{{{ $attachment->name }}}</div>
                                                                 </a>
                                                                 <input type="hidden" data-servername name="old_attachments[{{{ $key }}}][id]" value="{{{ $attachment->getKey() }}}">
                                                                 <input data-removed type="hidden" data-servername name="old_attachments[{{{ $key }}}][deleted]" value="0">
-                                                                <button data-remove class="btn btn-danger btn-xs">eliminar</button>
+                                                                @if($user->can('delete', $attachment))
+                                                                    <button data-remove class="btn btn-danger btn-xs">eliminar</button>                                                                   
+                                                                @endif                                                               
                                                             </div>
                                                         </div>
                                                     @endforeach
@@ -90,19 +100,13 @@
                                 </button>  
                             @endif  
                         @else 
-
                             @if( $user->can('draft', $model ) )
-                                <button type="submit"  name="action" value="draft"  class="btn btn-primary">
+                                <button type="submit" name="action" value="draft"  class="btn btn-primary">
                                     Guardar Borrador
                                 </button>
-                            @endif 
-                            @if( $user->can('fulledit', $model ) == true)
-                                <button type="submit"  name="action" value="fulledit"  class="btn btn-primary">
-                                    Guardar
-                                </button>
-                            @endif
-                            @if( $user->can('approve', $model ) == true)
-                                <button type="submit"  name="action" value="approve"  class="btn btn-primary">
+                            @endif                             
+                            @if( $user->can('approve', $model ) == true)                                
+                                <button type="submit" name="action" value="approve"  class="btn btn-primary">
                                     Guardar y Aprobar
                                 </button>
                             @endif 
@@ -155,10 +159,20 @@
                                  <div class="row">
                                     <div class="col-xs-12">
                                         <div class="form-group">
-                                            <label >Supervisor  <strong class="require-mark">*</strong></label>
-                                            <select location-dep-ref location-list="supervisor" selectpicker data-live-search="true" name="assigned_to" class="required form-control">
-                                                
-                                            </select>
+                                            @if ($model->approved == 1 && !$user->can('updateapproved', $model))
+                                                <label >Supervisor  <strong class="require-mark">*</strong></label>
+                                                <select selectpicker data-live-search="true" name="assigned_to" class="required form-control">
+                                                    @foreach (\App\ORM\User::vacum()->isSupervisor()->inLocation($model->location)->get() as $element)
+                                                        <option value="{{ $element->getKey()}}">{{ $element->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <label >Supervisor  <strong class="require-mark">*</strong></label>
+                                                <select location-dep-ref location-list="supervisor" selectpicker data-live-search="true" name="assigned_to" class="required form-control">
+                                                    
+                                                </select>
+                                            @endif    
+                                            
                                         </div>
                                     </div>
                                 </div>
@@ -268,9 +282,14 @@
 @section('footer')
     <script src="{{ asset('vendors/fileuploader/compiled.js') }}"></script>
     <script src="{{ asset('js/scripts/jquery.datawelluploader.js') }}"></script>
+    
     <link rel="stylesheet" href="{{ asset('vendors/bootstrap-select/dist/css/bootstrap-select.min.css') }}">
     <script src="{{ asset('vendors/bootstrap-select/dist/js/bootstrap-select.js') }}"></script>
     <script src="{{ asset('vendors/bootstrap-select/dist/js/i18n/defaults-'.\Config::get('app.locale').'.js') }}"></script>
+
+    <link rel="stylesheet" href="{{ asset('vendors/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+    <script src="{{ asset('vendors/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ asset('vendors/bootstrap-datepicker/locales/bootstrap-datepicker.'.\Config::get('app.locale').'.min.js') }}"></script>
 
     <script src="{{ asset('js/scripts/entity.js') }}"></script>  
     <script src="{{ asset('js/scripts/jquery.sendajax.js?t='.time()) }}"></script>  

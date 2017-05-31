@@ -5,6 +5,7 @@ $.ajaxSetup({
 });
 
 $(document).ajaxComplete(function(r,xhr) {
+	
 	xhr.then(
 		function(){}, 
 		function(){
@@ -52,20 +53,37 @@ $.fn.locationsOptions = function(locations){
 			var $this = $(this);
 			var listName = $this.attr(locationListAttr);			
 			var value = $this.val();
+			
 			if(locations[listName]){
-				var options = '<option value="" >Selecciona</option>';
+				var options = '';
 				$.each(locations[listName],function(idx, model){
 					
 					options+= '<option value="'+model.id+'" >'+model.name+'</option>';
 				});
 			}else{
-				var options = '<option value="" >No hay opciones válidas disponibles</option>';
+				var options = '';
 			}
+			var changes= [];
 			$this.html(options);
-			$this.val(value);
 			if($this.data('selectpicker')){
-				$this.data('selectpicker').refresh();
+				$this.selectpicker('refresh');				
 			}
+			if(value != '' && value != null ){
+				$this.val(value);
+			} else {				
+				if($this.data('value') && $this.data('value') != null){
+					$this.val($this.data('value'));
+					$this.data('value', null);	
+					changes.push($this);
+				}
+			}
+			if($this.data('selectpicker')){
+				$this.selectpicker('refresh');				
+			}
+			for (var i = 0; i < changes.length; i++) {
+				changes[i].trigger('locationSelect.change');
+			}
+			
 		});			
 };
 
@@ -82,7 +100,7 @@ $.fn.locationSelect = function(options){
 				list.push($this.attr(locationListAttr));
 			});
 			window.loading(true);
-			$select.trigger('locationSelect.sent');
+			$select.trigger('locationSelect.sent');			
 			var promise = $.getLocations($select.val(), list);
 			promise
 				.then(function(list){
@@ -106,10 +124,18 @@ $.fn.locationSelect = function(options){
 
 $.fn.locationSelect.defaults = {
 	dependsSelector : 'select[select-depends]',
-	initRun: true
+	initRun: true,	
 };
 
 (function($){
+	$(document).on('click','[data-href]', function(){
+		var url = $(this).attr('data-href');
+		var modal = $($(this).attr('data-target'));
+		$.ajax({url:url})
+			.then(function(res){
+				modal.find('.modal-content').html(res);
+			});
+	});
 	$(document).ready(function(){
 		$('body').on('click', 'ul.dropdown-menu [data-toggle=dropdown]', function(event) {
 			event.preventDefault(); 

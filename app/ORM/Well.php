@@ -6,12 +6,10 @@ use App\ORM\ApproveTrait;
 
 class Well extends BaseModel
 {
-	use \Illuminate\Database\Eloquent\SoftDeletes, LocationTrait;
-	use ApproveTrait;
     const STATE_APPROVING = 1;
     const STATE_REVIEWING= 2;
-
-
+	use \Illuminate\Database\Eloquent\SoftDeletes, LocationTrait;
+	use ApproveTrait;
     protected $fillable = [];
     protected $table = 'wells';
     protected $dates = ['deleted_at','created_at', 'updated_at', 'drilled_at'];
@@ -44,17 +42,12 @@ class Well extends BaseModel
     }
 
     public function deviation(){
-    	return $this->belongsTo('App\ORM\Desviation', 'deviation_id')->withTrashed();
+    	return $this->belongsTo('App\ORM\Deviation', 'deviation_id')->withTrashed();
     }
 
     public function coorSys(){
     	return $this->belongsTo('App\ORM\CoordinateSys', 'ref_cor_sis_id')->withTrashed();
     }
-
-    public function revisions(){
-        return $this->morphMany('App\ORM\Revision', 'revisable');
-    }
-
     public function services(){
         return $this->hasMany('App\ORM\Service', 'well_id');
     }
@@ -63,54 +56,72 @@ class Well extends BaseModel
         return route('well.attachment', ['id'=>$this->getKey(), 'aid'=>$id]);
     }
 
-    public function approveable()
-    {
-        return ($this->approved != 1 || $this->attachments()->where('approved', 0)->count() > 0);
-    }
-
-    public function scopeApproveable($q)
-    {  
-       $q
-        ->where('approved',0)
-        ->orWhereHas('attachments', function($inneq){
-            $table = $inneq->getModel()->getTable();
-            $inneq->where($table.'.approved', 0);
-        });
-        return $q;
-    }
-    
-    public function assignedTo(){
-        return $this->belongsTo(  User::class, 'assigned_to');
-    }
-
     public function createdBy(){
         return $this->belongsTo(  User::class, 'created_by');
     }
-
-    public function approvedBy(){
-        return $this->belongsTo(  User::class, 'approved_by');
+    public function scopeNoAuthenticated($q){
+        return $q->where('approved', 1)->where('draft',0);
     }
+    // public function scopeFilterUser($q, $user){
+    //     $table = $q->getModel()->getTable();
+    //     if($user->isClient()){
+    //         $q->whereHas('services', function($q2) use ($user){
+    //             $q2->filterUser($user);                
+    //             return $q2;
+    //         });
+    //         $q->where('approved', 1);
+    //     }else{
+    //         $q->where(function($innerq) use ($user, $table){
+    //             $innerq
+    //                 ->where(function($innerq2) use ($user, $table){
+    //                     $innerq2->where($table.'.draft', '!=', 1);
+    //                     $innerq2->orWhere(function($innerq3) use ($user, $table){
+    //                         $innerq3
+    //                             ->where($table.'.draft',1)
+    //                             ->where($table.'.created_by', $user->getKey());
+    //                     });
+    //                 });
+                    
+    //             if($user->isAdmin()){
+    //                 $innerq->orWhere('location_id', $user->location->getKey());                   
+    //             }elseif(!$user->isSuperAdmin()){                    
+    //                  $innerq->orWhere(function($innerq2) use ($user, $table) {
+    //                     $innerq2->where(function($subq) use ($user, $table){
+    //                         $subq->where($table.'.approved','!=', 1)->where($table.'.assigned_to', $user->getKey());  
+    //                     })
+    //                     ->orWhere(function($subq) use ($user, $table){
+    //                         $subq->where($table.'.approved','!=', 1)->where($table.'.sent_by', $user->getKey());  
+    //                     })
+    //                     ->orWhere(function($subq) use ($user, $table){
+    //                         $subq->where($table.'.approved','=', 1);  
+    //                     }); 
+    //                 });
+    //             }   
+    //         });
+    //     }
+    //     return $q;
+    // }
 
-    public function scopeFilterUser($q, $user){
-
+    public function scopeFilterUser($q, $user){        
         if($user->isClient()){
             $q->whereHas('services', function($q2) use ($user){
-                $q2->filterUser($user);                
-                return $q2;
-            });
-            $q->where('approved', 1);
+                 $q2->filterUser($user);                
+                 return $q2;
+            })
+            ->where('approved',1);
         }else{
-            $q->where(function($innerq) use ($user){
-                $innerq
-                    ->where('draft', 0)
-                    ->orWhere(function($subq) use ($user){
-                        $subq
-                            ->where('draft', 1)
-                            ->where('created_by', $user->getKey());
-                    }); 
-            });
+            if(!$user->isSuperAdmin() && !$user->isAdmin()){
+                $q->orWhere(function($q2) use ($user){
+                    $q2->aprovingUser($user);                    
+                })
+                ->orWhere(function($q3) use ($user){
+                    $q3->where('draft', 1)->where('created_by', $user->getKey());
+                })
+                ->orWhere('approved', 1);
+            }           
         }
-        return $q;
     }
+
+           
 
 }

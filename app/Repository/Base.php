@@ -47,7 +47,6 @@ class Base{
 	}
 
 	public function newQuery(){
-
 		$className = $this->ORMClass;
 		$ob = new $className;
 		$this->query = $ob->newQuery();

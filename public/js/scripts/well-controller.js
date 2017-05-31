@@ -79,6 +79,9 @@
       return false;
     }
   });
-
+  $('*[datepicker]').datepicker({
+		format: 'yyyy-mm-dd',
+		language:'es'
+	})
 })(window, jQuery);
 

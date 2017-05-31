@@ -20,7 +20,9 @@ class Location extends BaseModel
 
     public function reindex($parent = false){
     	$parent = $parent !== false ? $parent : $this->parent;
-    	$this->index_search = $parent ? $parent->index_search.$this->getKey().'/' :  '/'.$this->getKey().'/' ;
+        $this->index_search = $parent ? $parent->index_search.$this->getKey().'/' :  '/'.$this->getKey().'/' ;
+        $this->full_name = $parent ? $parent->full_name.$this->name.'/' :  '/'.$this->name.'/' ;
+    	$this->level = count(explode('/', trim($this->index_search, '/')));
     	$this->save();
     	$children = $this->children()->get();
     	foreach ($children as $key => $child) {
@@ -46,5 +48,10 @@ class Location extends BaseModel
         
         return strpos($this->index_search, $location->index_search) === 0;
     }
+
+    public function fullName(){
+        return implode(', ', explode('/', trim($this->full_name, '/')));
+    }
+
 
 }

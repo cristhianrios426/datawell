@@ -34,7 +34,20 @@ class ServicePolicy
         }
     }
   
-
+    
+    public function updateapproved(User $user, Service $model){
+        if($model->approved != 1){
+            return false;
+        }
+        if($user->isSuperAdmin()){
+            return true;
+        }
+        if($user->isAdmin()){
+            return $model->well && $model->well->location && $model->well->location->inLocation($user->location);
+        }
+        return false;
+        
+    }
     public function create(User $user, $model = Service::class)
     {   
         if(is_string($model)){
@@ -55,11 +68,11 @@ class ServicePolicy
                 if(!$well){
                     return false;
                 }
-                $location = Location::find($well->location_id);
-                if(!$location){
-                    return (false);
-                }
-                return $location->inLocation($user->location);
+                // $location = Location::find($well->location_id);
+                // if(!$location){
+                //     return (false);
+                // }
+                return $well->inLocation($user->location);
             }
         }
         return (false);
@@ -113,7 +126,7 @@ class ServicePolicy
         }elseif($user->isEngineer()){
             $authorized  =  false;
         }elseif($user->isAdmin()){
-            $authorized  = ($model->location && $model->inLocation($user->location));            
+            $authorized  = ($model->well && $model->well->inLocation($user->location));            
         }elseif($user->isSupervisor()){
 
             $authorized =  $model->isAssignedTo($user) || $this->draft($user, $model) ;
@@ -141,21 +154,25 @@ class ServicePolicy
     public function sendapprove(User $user, Service $model)
     {
         
-        $approveable = $model->approveable();
-        $blocked = $model->blocked();
-
-        if($user->isSupervisor()){
-            $authorized = $model->isAssignedTo($user);    
-        }else if($user->isAdmin()){
-            $authorized =  $model->well &&  $model->well->location && $model->well->inLocation($user->location);    
+        $approving = $model->approving();
+        if($user->isSupervisor()){            
+            $authorized = ( !$model->approving() && !$model->reviewing() );    
+        }else if($user->isAdmin() || $user->isEngineer()){
+            $authorized = $model->location && $model->inLocation($user->location);    
+            if($user->isEngineer()){
+                if($model->reviewing()){
+                    $authorized = $model->wasSentTo($user);
+                }else{
+                    $authorized = true;
+                }
+            }
         }else if($user->isSuperAdmin()){
             $authorized = true;
-        }else if($user->isEngineer()){
-            $authorized = $model->createdBy && $model->createdBy->getKey() == $user->getKey();
         }else{
             $authorized = false;
-        }        
-        return ($authorized && $approveable && !$blocked && !$model->isAssignedTo($user));
+        }
+        //dd ($authorized , $approveable , !$blocked , !$model->isAssignedTo($user));
+        return ($authorized && !$approving);
     }
     
     public function fulledit(User $user, Service $model){
@@ -167,11 +184,8 @@ class ServicePolicy
                 if(!$well){
                     return false;
                 }
-            $location = Location::find($well->location_id);
-            if(!$location){
-                    return false;
-            }
-            return ($location->inLocation($user->location) && $model->approved == 1);  
+            
+            return ($well->inLocation($user->location) && $model->approved == 1);  
             
         }
         return false;

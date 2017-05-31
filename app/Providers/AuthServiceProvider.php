@@ -15,6 +15,7 @@ class AuthServiceProvider extends ServiceProvider
         'App\ORM\Service' => 'App\Policies\ServicePolicy',
         'App\ORM\Well' => 'App\Policies\WellPolicy',
         'App\ORM\Setting' => 'App\Policies\SettingPolicy',
+        'App\ORM\Attachment' => 'App\Policies\AttachmentPolicy',
     ];
 
     /**

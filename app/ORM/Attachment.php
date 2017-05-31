@@ -1,6 +1,7 @@
 <?php
 namespace App\ORM;
 use App\Util\Helpers;
+use App\ORM\ApproveTrait;
 class Attachment extends BaseModel
 {
 	use \Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ class Attachment extends BaseModel
     const STATE_APPROVING = 2;
     const STATE_ACTIVE = 4;
 
-	
+	   
     protected $fillable = [];
     protected $table = 'attachments';
     protected $dates = ['deleted_at','created_at', 'updated_at'];
@@ -32,6 +33,7 @@ class Attachment extends BaseModel
 
    	public function attachable()
     {
+      
         return $this->morphTo();
     }
 }

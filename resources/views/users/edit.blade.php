@@ -42,7 +42,7 @@
                 <div class="col-xs-12  col-sm-6">
                     <div class="form-group">
                         <label >Ubicaci&oacute;n</label>
-                        <select data-live-search="true" name="location_id" class="selectpicker form-control" id="">
+                        <select data-live-search="true" name="location_id" class="required selectpicker form-control" id="">
                             <option value="">[Seleccione]</option>
                             @include('util.nested-tree-options',['listModels'=>$locations, 'level'=>'', 'selected'=>$model->location_id ])
                         </select>

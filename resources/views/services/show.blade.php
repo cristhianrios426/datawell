@@ -7,6 +7,11 @@
     <form action="{{{ ( !$model->exists  ? route($entityName.'.store') : route($entityName.'.update',['id'=>$model->getKey()]))  }}}" method="{{{ ( !$model->exists  ? 'POST' : 'PUT' )  }}}">
         <div class="row">
             <div class="col-xs-12">
+                @include('services.state-message', ['model'=>$model])
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         <h4 class="modal-title">Servicio: {{{ $model->name }}}</h4>
@@ -18,9 +23,9 @@
                                     <div class="row">
                                         <div class="col-xs-12">
                                             <div class="form-group">
-                                                <label >Nombre  <strong class="require-mark">*</strong></label>
+                                                <label >Cliente  <strong class="require-mark">*</strong></label>
                                                 <div class="form-control">
-                                                  {{{ $model->name }}}
+                                                  {{{ $model->client->name }}}
                                                 </div>
                                             </div>
                                         </div>
@@ -84,6 +89,9 @@
                                                 @if ($model->exists)
                                                   @foreach ($model->attachments as $key => $attachment)
                                                        <div class="well " data-old-attachment >
+                                                            <div>
+                                                             <span class="label label-{{ $attachment->approved ? 'success' : 'warning' }}">{{ $attachment->approved ? 'Aprobado' : 'No aprobado' }}</span>
+                                                          </div>
                                                           <a href="{{{ $model->routeToAttachment($attachment->id) }}}" data-url target="_blank">
                                                               <div data-name="">{{{ $attachment->name }}}</div>
                                                           </a>
@@ -103,13 +111,14 @@
                           <button data-toggle="dropdown" class="btn btn-primary dropdown-toggle"><span class="caret"></span></button>
                           <ul class="dropdown-menu">
                             <li><a href="{{{ route($entityName.'.edit', ['id'=>$model->id]) }}}"  >Editar</a></li>                            
-                            <li><a href="{{{ route($entityName.'.index') }}}"  >Ver listado</a></li>
+                            <li><a href="{{{ route('well.show',['id'=>$model->well_id]) }}}"  >Ver pozo</a></li>
                           </ul>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div>       
+        
     </form>
 </div>
 <div style="display: none" id="template-file">
@@ -123,6 +132,8 @@
         <button data-remove="" class="btn btn-danger btn-xs">eliminar</button>
     </div>
 </div>
+
+
 @stop
 @section('footer')
     <link rel="stylesheet" href="{{ asset('vendors/bootstrap-select/dist/css/bootstrap-select.min.css') }}">

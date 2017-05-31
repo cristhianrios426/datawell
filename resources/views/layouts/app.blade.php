@@ -49,9 +49,17 @@
                         <li>
                             <a href="{{{ route('well.index') }}}">Pozos</a>
                         </li>
-                        <li>
-                            <a href="{{{ route('service.index') }}}">Servicios</a>
-                        </li>
+                        @if (\App\ORM\Well::pendingApprove(\Auth::user())->count() > 0 || \App\ORM\Service::pendingApprove(\Auth::user())->count() > 0)
+                            <li>
+                                <a href="{{{ url('por-aprobar') }}}">Por aprobar</a>
+                            </li>
+                        @endif
+                        @if (\App\ORM\Well::pendingReview(\Auth::user())->count() > 0 || \App\ORM\Service::pendingReview(\Auth::user())->count() > 0)
+                            <li>
+                                <a href="{{{ url('por-revisar') }}}">Por revisar</a>
+                            </li>
+                        @endif
+                        
                         @can('index', "App\\ORM\\Setting")
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
@@ -94,6 +102,11 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a href="{{ route('location.index') }}" >
+                                            Ubicaciones
+                                        </a>
+                                    </li>
+                                    <li>
                                         <a href="{{ route('cuenca.index') }}" >
                                             Cuencas
                                         </a>
@@ -116,6 +129,12 @@
                                             <li><a href="{{ route('business-unit.index') }}">Unidades de negocios</a></li>                                        
                                         </ul>
                                     </li>
+                                    <li class="divider"></li>  
+                                    <li>
+                                        <a href="{{ route('f-a-q.index') }}" >
+                                            Preguntas Frecuentes
+                                        </a>
+                                    </li> 
                                 </ul>
                             </li>
                         @endcan                       
@@ -123,8 +142,9 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
-                        <!-- Authentication Links -->
-                         <li><a href="#" data-target="#contact-modal" data-toggle="modal">Contacto</a></li>
+                        <!-- Authentication Links -->                        
+                        <li><a href="{{ route('preguntas-frecuentes') }}" >FAQ</a></li>
+                        <li><a href="#" data-target="#contact-modal" data-toggle="modal">Contacto</a></li>
                         @if (Auth::guest())
                             <li><a href="{{ route('login') }}">Login</a></li>
                         @else                            

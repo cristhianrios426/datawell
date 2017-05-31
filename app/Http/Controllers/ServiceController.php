@@ -13,6 +13,7 @@ use App\ORM\Attachment;
 use App\ORM\Well;
 use App\ORM\Section;
 use App\ORM\User;
+use App\ORM\Client;
 use App\ORM\Revision;
 
 
@@ -52,13 +53,15 @@ class ServiceController extends Controller
             \App::abort(404);
         }
 
-        $prewell = $request->has('id_well') && !$model->exists ?  $request->get('id_well') : false;
+        $prewell = $request->has('well_id') && !$model->exists ?  $request->get('well_id') : false;
+        $clients = Client::all()->toArray();
 
         $data = array(
             'wells' => Well::all(),
             'serviceTypes' => ServiceType::all(),
             'sections' => Section::all(),
             'model' => $model,
+            'clients ' => $clients ,
             'user' => \Auth::user(),
             'prewell'=>$prewell
         );
@@ -75,9 +78,9 @@ class ServiceController extends Controller
         
         /**/
 
-        if($request->has('term')){
-            $this->repository->term($sorts, $request->input('term'));
-        }
+        // if($request->has('term')){
+        //     $this->repository->term($sorts, $request->input('term'));
+        // }
         if($request->has('sort') && in_array($request->input('sort'), $sorts ) ){
             $this->repository->orderBy($request->input('sort'), $request->input('sort_type', 'desc'));
         } 
@@ -207,8 +210,7 @@ class ServiceController extends Controller
                         }
                         $model->assigned_to = $assigned->getKey();
                     }
-                    $model->state = Model::STATE_REVIEWING;
-                    $model->draft = 0;
+                    $model->sendApprove($user);
                     
                 }else{
                     $e = new \App\Exceptions\Exception();
@@ -235,9 +237,19 @@ class ServiceController extends Controller
                 $e = new \App\Exceptions\Exception();
                 $e->setContext(['Acción no autorizada.']);
                 throw $e;
-            }
-            $model->save();
-                     
+            }           
+            if(
+                $request->input('action') == 'approve' || 
+                $request->input('action') == 'createapproved' ||
+                $request->input('action') == 'fulledit' 
+            ){
+
+                $model->attachments()->update([
+                    'approved_by'=>$model->approved_by,
+                    'approved_at'=>date('Y-m-d'),
+                    'approved'=>1,
+                ]);
+            }         
             if($request->has('attachments') && is_array($request->get('attachments'))){
                 $attachRepo = new AttachmentRepository();
                 foreach ($request->input('attachments') as $key => $attach) {
@@ -256,10 +268,12 @@ class ServiceController extends Controller
                             $att->approved =1;                            
                         }
                         if($request->input('action') == 'sendapprove' || $request->input('action') == 'createsendapprove'){
-                            $att->assigned_to = $model->assigned_to;                            
+                            $att->assigned_to = $model->assigned_to;
+                            $att->sent_by = $model->sent_by;                            
                         }
                         $att->state = $model->state;
                         $att->draft = $model->draft;
+                        
                         $att->save();                       
                     }catch (\App\Repository\Exception\ValidatorException $e) {
                         \DB::rollback();
@@ -270,19 +284,17 @@ class ServiceController extends Controller
                     }
                 }
             }
-            // if($request->has('old_attachments') && is_array($request->get('old_attachments'))){
-            //     $deleteds = [];
-            //     foreach ($request->input('old_attachments') as $key => $attach) {
-            //         if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){
-            //             $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
-            //             if($attachment){
-            //                 $attachment->delete();
-            //                 $deleteds[] = $attachment->getKey();
-            //             }
-            //         }
-            //     }
-               
-            // }            
+            if($request->has('old_attachments') && is_array($request->get('old_attachments'))){                
+                foreach ($request->input('old_attachments') as $key => $attach) {
+                    if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){                        
+                        $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
+                        if($attachment && $user->can('delete', $attachment)){                            
+                            $attachment->delete();                           
+                        }
+                    }
+                }
+            } 
+            $model->save();  
             \DB::commit(); 
             return response()->json( ['messages'=>['messages'=>['Cambios almacenados. Redireccionando...'], 'type'=>'success'] , 'redirect'=>route('service.show', ['id'=>$model->getKey()]), 'delay'=>2000 ] , 200);
         }catch(\App\Exceptions\Exception $e){
@@ -338,12 +350,8 @@ class ServiceController extends Controller
             }
             $user = \Auth::user();
             $user->canOrFail('review', $model);
-            $revision = new Revision();
-            $revision->content = $request->input('content', '');
-            $model->revisions()->save($revision);
-            $model->state = Model::STATE_APPROVING;
-            $model->save();
-
+            $revision = new Revision();            
+            $model->createRevision($request->input('content', ''));
             return \Response::json(
                     [
                         'messages'=>
@@ -360,5 +368,20 @@ class ServiceController extends Controller
                     ]
                 );
         }
+    }
+
+    public function attachments(Request $request, $id){
+       
+            $model = Model::find($id);
+            if(!$model){
+                return  'asdada';
+            }
+            $attachments = $model->attachments()->where('approved', 1)->get();
+            return \View::make('attachments.attachments-modal', [
+                    'name'=>$model->type->name,
+                    'model'=>$model,
+                    'attachments'=>$attachments
+                ]);
+        
     }
 }

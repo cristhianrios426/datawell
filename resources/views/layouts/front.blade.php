@@ -46,9 +46,12 @@
                 <div class="collapse navbar-collapse" id="app-navbar-collapse">
                     <!-- Left Side Of Navbar -->
                     <ul class="nav navbar-nav">
-                        <li>
-                            <a href="{{{ route('index') }}}">Colombia</a>
-                        </li>
+                        @foreach (\App\ORM\Location::where('parent_id',0)->get() as $country)                            
+                            <li>
+                                <a href="{{{ route('index') }}}?country_id={{$country->getKey()}}">{{ $country->name }}</a>
+                            </li>
+                        @endforeach
+                        
                     </ul>
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
