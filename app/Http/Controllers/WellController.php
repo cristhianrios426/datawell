@@ -110,6 +110,22 @@ class WellController extends Controller
             'model' => $model,
             'user'=>\Auth::user(),
         );
+
+        $user = \Auth::user();
+        if($model->approved == 1 && !$user->can('updateapproved', $model)){
+            $ascendece = $model->location->listAscendence();
+            $firstLocation = Location::whereKey($ascendece[0])->withTrashed()->first();
+            if($firstLocation){
+                
+                $supervisors =  User::vacum()->isSupervisor()->inLocation($firstLocation)->get();    
+                
+            }else{
+                 $supervisors = [];
+            }
+            $data['supervisors'] = $supervisors;
+        }
+        
+        
         return view($this->entitiesName.'.create', $data); 
     }
 
@@ -136,6 +152,8 @@ class WellController extends Controller
     
     public function save(Request $request, $model, $mode )
     {
+
+        //dd($request->all());
         
         \DB::beginTransaction();
         try {
@@ -264,9 +282,9 @@ class WellController extends Controller
                 foreach ($request->input('old_attachments') as $key => $attach) {
                     if( isset($attach['id'])  && isset($attach['deleted']) && $attach['deleted'] == 1){                        
                         $attachment = $model->attachments()->whereKey( $attach['id'] )->first();
-                        if($attachment && $user->can('delete', $attachment)){                            
+                        //if($attachment && $user->can('delete', $attachment)){                            
                             $attachment->delete();                           
-                        }
+                        //}
                     }
                 }
             }

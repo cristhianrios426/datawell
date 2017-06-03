@@ -86,15 +86,13 @@ class UserRepository extends Base{
 			}
 		}
 
-
 		$rules['ide'][] = ['required'];
 		$rules['ide_type'][] = ['required'];
-		$rules['phone'] = 'required';
-		$rules['cell'] = 'required';
-		$rules['address'] = 'required';
-		$rules['job_phone'] = 'required';
-		$rules['job_cell'] = 'required';
+
+		$rules['job_phone'] = 'required';		
 		$rules['job_address'] = 'required';
+		$rules['cargo'] = 'required';
+		$rules['dependencia'] = 'required';
 		$rules['password'] = 'required|confirmed|numbers|letters|case_diff|min:8';
 
 		$attrsNames =[];
@@ -122,13 +120,16 @@ class UserRepository extends Base{
 		$this->entity->name = $input['name'];
         $this->entity->ide_type = $input['ide_type'];
         $this->entity->ide = $input['ide'];
-        $this->entity->phone = $input['phone'];
-        $this->entity->cell = $input['cell'];
-        $this->entity->address = $input['address'];
         $this->entity->job_phone = $input['job_phone'];
-        $this->entity->job_cell = $input['job_cell'];
         $this->entity->job_address = $input['job_address'];
         $this->entity->password = \Hash::make($input['password']);
+
+        $noMandatory = ['phone','cell','address','job_cell','personal_email'];
+        foreach ($noMandatory as $key => $field) {	
+        	if(isset($input[$field])){
+        		$this->entity->{$field} = $input[$field];
+        	}
+        }        
         $this->entity->activation_token = '';
 
         $this->entity->save();

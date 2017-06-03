@@ -50,7 +50,7 @@
                                                           </a>
                                                           <input type="hidden" data-servername name="old_attachments[{{{ $key }}}][id]" value="{{{ $attachment->getKey() }}}">
                                                           @if ($user->can('delete', $attachment))
-                                                                <button data-remove class="btn btn-danger btn-xs">eliminar</button>
+                                                                <button data-remove class="btn btn-danger btn-xs">Eliminar</button>
                                                               <input data-removed type="hidden" data-servername name="old_attachments[{{{ $key }}}][deleted]" value="0">
                                                           @endif
                                                           
@@ -261,7 +261,7 @@
         <div data-progress=""></div>
         <input type="hidden" data-servername name="attachments[{id}][file]">
         <input type="hidden" data-clientname name="attachments[{id}][name]">
-        <button data-remove="" class="btn btn-danger btn-xs">eliminar</button>
+        <button data-remove="" class="btn btn-danger btn-xs">Eliminar</button>
     </div>
 </div>
 @stop

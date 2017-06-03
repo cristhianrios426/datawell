@@ -179,7 +179,7 @@
     <div class="col-sm-6 col-xs-12">
         <div class="form-group">
             <label >Fecha de perforaci&oacute;n <strong class="require-mark">*</strong></label>
-            <input type="text" name="drilled_at" datepicker class="required form-control" value="{{{ $model->drilled_at->format('Y-m-d') }}}">   
+            <input type="text" name="drilled_at" datepicker class="required form-control" value="{{{ $model->drilled_at ? $model->drilled_at->format('Y-m-d') : '' }}}">   
         </div>
     </div>
 </div>

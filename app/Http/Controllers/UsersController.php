@@ -17,7 +17,10 @@ class UsersController extends SettingsController
     public $entityName;
     public $entitiesName;
     public function __construct(){
-        parent::__construct();
+
+        $this->middleware('auth')->except(['accountActivation','accountActivationPost']);
+        $this->middleware('can:index,App\ORM\Setting')->only('index');
+        $this->middleware('can:create,App\ORM\Setting')->only(['store', 'create']);
         
         $this->repository = new UserRepository();
         $this->entityName ="operator";

@@ -18,6 +18,10 @@ class Location extends BaseModel
     	return $this->tchildren()->orderBy('name');
     }
 
+    public function listAscendence(){
+        return explode( '/', trim($this->index_search, '/'));
+    }
+
     public function reindex($parent = false){
     	$parent = $parent !== false ? $parent : $this->parent;
         $this->index_search = $parent ? $parent->index_search.$this->getKey().'/' :  '/'.$this->getKey().'/' ;

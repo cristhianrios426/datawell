@@ -150,6 +150,54 @@ class HomeController extends Controller
         return [];
     }
 
+    // public function locationSelect(Request $request){
+    //     $locals = [
+    //         'cuenca'=>Cuenca::vacum(),
+    //         'block'=>Block::vacum(),
+    //         'area'=>Area::vacum(),
+    //         'location'=>Location::vacum(),
+    //         'camp'=>Camp::vacum(),            
+    //         'supervisor'=>User::vacum()->isSupervisor(),            
+    //     ];
+    //     if($request->has('parent_id') && $request->has('list') &&  is_array($request->input('list'))){
+    //         $parent = $request->input('parent_id');
+    //         $parent = $parent != '' ? $parent : 0;
+    //         $location = Location::find($parent);            
+            
+    //         $list = array_unique($request->input('list'));
+    //         $response = [];
+    //         foreach ($list as $key => $value) {
+    //             if(isset($locals[$value])){
+    //                 $q = $locals[$value];
+    //                 $q->select(['id', 'name']);
+    //                 if($value == 'location'){
+    //                     if(!$location){
+    //                         $result = $q->where('parent_id', 0)->get();
+    //                     }else{
+    //                         $result  = $q->where('parent_id', $location->getKey())->get();
+    //                     }
+    //                     $response[$value] = $result; 
+    //                 }else{
+    //                     if(!$location){
+    //                         $result = $q->get();
+    //                     }else{
+    //                         $result  = $q->inLocation($location)->get();
+    //                     }
+    //                     $response[$value] = $result;   
+    //                 }
+                 
+    //             }
+                
+    //         }
+    //         $json = json_encode($response);            
+    //         //return \Response::make($json)->header('Content-Type', 'application/json');
+    //         return \Response::json($response);
+    //     }else{
+    //          return \Response::json([]);
+    //     }
+    // }
+
+
     public function locationSelect(Request $request){
         $locals = [
             'cuenca'=>Cuenca::vacum(),
@@ -162,8 +210,7 @@ class HomeController extends Controller
         if($request->has('parent_id') && $request->has('list') &&  is_array($request->input('list'))){
             $parent = $request->input('parent_id');
             $parent = $parent != '' ? $parent : 0;
-            $location = Location::find($parent);            
-            
+            $location = Location::find($parent); 
             $list = array_unique($request->input('list'));
             $response = [];
             foreach ($list as $key => $value) {
@@ -178,10 +225,13 @@ class HomeController extends Controller
                         }
                         $response[$value] = $result; 
                     }else{
+                        $list = $location->listAscendence();
+                        $locationId = $location->parent_id == 0 ? $location->getKey() : $list[0];
+                        $currentLocation = ($locationId == $location->getKey()) ? $location : Location::find($locationId);    
                         if(!$location){
                             $result = $q->get();
                         }else{
-                            $result  = $q->inLocation($location)->get();
+                            $result  = $q->inLocation($currentLocation)->get();
                         }
                         $response[$value] = $result;   
                     }

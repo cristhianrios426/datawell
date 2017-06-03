@@ -127,8 +127,8 @@
     </div>
     <div class="col-sm-6 col-xs-12">
         <div class="form-group">
-            <label >Fecha de excavaci&oacute;n</label>
-            <div class="form-control"  >{{{ ( $model->drilled_at ) }}}</div>
+            <label >Fecha de perforaci&oacute;n</label>
+            <div class="form-control"  >{{{ ( $model->drilled_at ? $model->drilled_at->format('Y-m-d') : '' ) }}}</div>
         </div>
     </div>
 </div>

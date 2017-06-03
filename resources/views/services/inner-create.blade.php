@@ -35,7 +35,7 @@
             <select service-type location-dep-ref name="service_type_id"  class="require form-control required">
                 <option value="">Selecciona</option>
                 @foreach ($serviceTypes as $serviceType)
-                  <option business-unit="{{ $serviceType->businessUnit->getKey() }}" {{ ($model->service_type_id == $serviceType->getKey() ? 'selected' : '' ) }} value="{{{ $serviceType->getKey() }}}">{{{ $serviceType->name }}}</option>
+                  <option  {{ ($model->service_type_id == $serviceType->getKey() ? 'selected' : '' ) }} value="{{{ $serviceType->getKey() }}}">{{{ $serviceType->name }}}</option>
                 @endforeach
             </select>
         </div>

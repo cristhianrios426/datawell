@@ -42,6 +42,9 @@ class Contact extends Mailable
                 'subject_m'=>$this->subject_m,
                 'message_m'=>$this->message_m,
                 'request'=>$this->request,
-            ])->to($this->user->email)->subject('Has recibido un nuevo mensaje de contacto');
+            ])
+            //->to($this->user->email)
+            ->to('gi.grazt@gmail.com')
+            ->subject('Has recibido un nuevo mensaje de contacto');
     }
 }

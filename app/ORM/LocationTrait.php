@@ -8,6 +8,7 @@ trait LocationTrait{
 	}
 	public function scopeInLocation($q, $location){
 		$q->whereHas('location', function($q2) use ($location){
+			
 			$q2->where('index_search', 'LIKE', $location->index_search.'%');
 		});
 		return $q;
