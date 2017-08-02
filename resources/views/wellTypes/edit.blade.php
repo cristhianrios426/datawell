@@ -14,6 +14,17 @@
     </div>
     <div class="row">
       <div class="col-xs-12">
+        <div class="form-group">
+          <label >Color</label>
+          <div class="input-group colorpicker-component">
+            <input type="text" name="color"  class="color form-control" value="{{{ $model->color }}}" >
+            <span class="input-group-addon"><i></i></span>
+          </div>          
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
         <div alert ></div>
       </div>
     </div>

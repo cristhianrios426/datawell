@@ -5,20 +5,17 @@
 			</tr>
 			<tr>
 				<td style="padding: 0px 8px; width: 140px"><strong>Ubicaci&oacute;n</strong></td>
-				<td>@{{ location.name }}</td>
+				<td>@{{ location.stringFullName }}</td>
 			</tr>
 			<tr>
-				<td style="padding: 0px 8px;"><strong>profundidad TVD (ft)</strong></td>
+				<td style="padding: 0px 8px;"><strong>Profundidad TVD (ft)</strong></td>
 				<td>@{{ profundidad_tvd }}</td>
 			</tr>
 			<tr>
-				<td style="padding: 0px 8px;"><strong>profundidad MD (ft)</strong></td>
+				<td style="padding: 0px 8px;"><strong>Profundidad MD (ft)</strong></td>
 				<td>@{{ profundidad_md }}</td>
 			</tr>						
-			<tr>
-				<td style="padding: 0px 8px;"><strong>Regi&oacute;n</strong></td>
-				<td>@{{ area.name }}</td>
-			</tr>
+			
 			<tr>
 				<td style="padding: 0px 8px;"><strong>Campo</strong></td>
 				<td>@{{ camp.name }}</td>
@@ -41,9 +38,7 @@
 			</tr>
 			<tr>
 				<td style="padding: 0px 8px;"><strong>Tipos de servicio</strong></td>
-				<td>@{{#services}}         
-					  @{{service_types_name}} ,
-					@{{/services}}
+				<td>@{{#join}}serviceTypesNames@{{/join}}
 				</td>
 			</tr>
 		</table>

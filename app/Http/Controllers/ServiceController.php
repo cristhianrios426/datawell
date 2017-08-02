@@ -341,6 +341,20 @@ class ServiceController extends Controller
         }
     }
 
+    public function destroy($id)
+    {
+        $model = $this->repository->whereKey($id)->first();
+        $user = \Auth::user();
+        if($model && $user->can('delete', $model)){
+            if(request()->wantsJson()) {            
+                $d =  $model->delete($id);
+                return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
+            }
+            return \View::make($this->entitiesName.'.delete',['model'=>$model]);
+        }
+        
+    }
+
     public function revision(Request $request, $id){
         if($id){
             $input = $request->all();

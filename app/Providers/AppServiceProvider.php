@@ -7,6 +7,7 @@ use App\ORM\User;
 use App\ORM\Well;
 use App\ORM\Service;
 use App\ORM\Revision;
+use App\ORM\Attachment;
 use App\ORM\BaseModel;
 use App\ORM\Observer\LocationObserver;
 use App\ORM\Observer\PersonObserver;
@@ -49,9 +50,11 @@ class AppServiceProvider extends ServiceProvider
         Location::observe(LocationObserver::class);
         BaseModel::observe(PersonObserver::class);
         User::observe(PersonObserver::class);
-        Well::observe(PersonObserver::class);
         Revision::observe(PersonObserver::class);
+        Attachment::observe(PersonObserver::class);
+        Well::observe(PersonObserver::class);
         Service::observe(PersonObserver::class);
+        
         DB::statement('SET FOREIGN_KEY_CHECKS = 0');
 
     }

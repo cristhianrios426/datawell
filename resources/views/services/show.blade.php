@@ -7,6 +7,18 @@
     <form action="{{{ ( !$model->exists  ? route($entityName.'.store') : route($entityName.'.update',['id'=>$model->getKey()]))  }}}" method="{{{ ( !$model->exists  ? 'POST' : 'PUT' )  }}}">
         <div class="row">
             <div class="col-xs-12">
+                <ol class="breadcrumb">
+                  <li><a href="{{{ url('/') }}}">Inicio</a></li>          
+                  <li><a href="{{ route('well.index') }}">Pozos</a></li>
+                  @if ($model->exists)
+                    <li><a href="{{ route('well.show', ['id'=>$model->well->id ] ) }}">{{ $model->well->name }}</a></li>
+                  @endif
+                  <li>Servicio: {{ $model->exists ? $model->type->name : 'Nuevo Servicio' }}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 @include('services.state-message', ['model'=>$model])
             </div>
         </div>
@@ -59,9 +71,19 @@
                                         </div>
                                         <div class="col-xs-12 col-sm-6">
                                             <div class="form-group">
+                                                <label >Fecha de inicio <strong class="require-mark">*</strong> </label>
+                                                <div class="form-control">
+                                                  {{{ $model->started_at ? $model->started_at->format('Y-m-d') : '' }}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-12 col-sm-6">
+                                            <div class="form-group">
                                                 <label >Fecha de terminaci&oacute;n <strong class="require-mark">*</strong> </label>
                                                 <div class="form-control">
-                                                  {{{ $model->ended_at }}}
+                                                  {{{ $model->ended_at ? $model->ended_at->format('Y-m-d') : '' }}}
                                                 </div>
                                             </div>
                                         </div>
@@ -95,6 +117,11 @@
                                                           <a href="{{{ $model->routeToAttachment($attachment->id) }}}" data-url target="_blank">
                                                               <div data-name="">{{{ $attachment->name }}}</div>
                                                           </a>
+                                                            <small><strong>Creado por:</strong> {{ $attachment->createdBy->name }} en {{ $attachment->created_at->format('Y-m-d') }} </small>
+                                                            @if ($attachment->approved)
+                                                                <br>
+                                                                <small><strong>Aprobado por:</strong> {{ $attachment->approvedBy->name }} en {{ $attachment->approved_at->format('Y-m-d') }} </small>
+                                                            @endif
                                                       </div>
                                                   @endforeach
                                                 @endif

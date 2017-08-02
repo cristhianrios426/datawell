@@ -48,4 +48,38 @@
 			});
 	});
 
+	$('body').on('click', '*[data-send-token]', function(){
+		var $this = $(this);
+		var id = $this.attr('data-send-token');
+		window.loading(true);
+		var promise = $.ajax({
+			url: crud.entity.rootURL+'/send-token',
+			type:'post',
+			data:{id:id}
+		});
+		var $formsend = $('[form-send]');
+		promise
+			.then(function(data){
+				$formsend.find('*[alert]').each(function(){
+					var $alert = $(this);						
+					var html = crud.htmlMessages(data);
+					if(html){						
+						html.appendTo($alert);
+					}
+				});
+				document.location.reload();
+				window.loading(false);
+			}, function(xhr){
+				var data = xhr.responseJSON;					
+				$element.find('*[alert]').each(function(){
+					var $alert = $(this);
+					var html = crud.htmlMessages(data);						
+					if(html){						
+						html.appendTo($alert);
+					}
+				});
+				window.loading(false);
+			});
+	});
+
 })(window, jQuery)

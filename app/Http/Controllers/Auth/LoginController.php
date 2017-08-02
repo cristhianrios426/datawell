@@ -42,6 +42,7 @@ class LoginController extends Controller
     {
         $credentials = $this->credentials($request);
         $credentials['state'] = User::ACTIVE;
+        //$credentials['is_actived'] = 1;
         return $this->guard()->attempt(
             $credentials, $request->has('remember')
         );

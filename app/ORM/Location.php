@@ -7,8 +7,8 @@ use Util\DataBag;
 use Closure;
 class Location extends BaseModel
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes;
-   
+    protected $appends = ['stringFullName'];
+    use \Illuminate\Database\Eloquent\SoftDeletes;   
     use TreeTrait{
     	children as tchildren;
     }
@@ -57,5 +57,8 @@ class Location extends BaseModel
         return implode(', ', explode('/', trim($this->full_name, '/')));
     }
 
+    public function getStringFullNameAttribute(){
+        return $this->fullName();
+    }
 
 }

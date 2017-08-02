@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Repository\ServiceTypeRepository;
+use App\Repository\ServiceTypeRepository as Repository;
 use App\Repository\BusinessUnitRepository;
 use App\ORM\ServiceType as Model;
 use App\ORM\BusinessUnit as BusinessUnit;
@@ -16,8 +16,8 @@ class ServiceTypesController extends SettingsController
     public $entitiesName;
     public function __construct(){
         parent::__construct();
-        $this->repository = new ServiceTypeRepository();
-        $this->classname = ServiceType::class;
+        $this->repository = new Repository();
+        $this->classname = Model::class;
 
         $this->entityName ="service-type";
         $this->entitiesName ="service-types";
@@ -79,7 +79,7 @@ class ServiceTypesController extends SettingsController
         if($model->exists){
             \Auth::user()->canOrFail('update', $model);
         }else{
-            \Auth::user()->canOrFail('create', $this->classname);
+            \Auth::user()->canOrFail('create', '\App\ORM\ServiceType');
         }
 
         $data = array(        
@@ -105,7 +105,7 @@ class ServiceTypesController extends SettingsController
 
          $input = $request->all();
         if(!$request->has('business_unit_id')){
-            return response()->json( ['messages'=>['messages'=> 'La unidad de negocios es obligatoria', 'type'=>'danger']] , 422);
+            return response()->json( ['messages'=>['messages'=> ['La unidad de negocios es obligatoria'], 'type'=>'danger']] , 422);
         }
         
         if($request->input('business_unit_id') == 'new'){
@@ -170,7 +170,7 @@ class ServiceTypesController extends SettingsController
         
         $input = $request->all();
         if(!$request->has('business_unit_id')){
-            return response()->json( ['messages'=>['messages'=> 'La unidad de negocios es obligatoria', 'type'=>'danger']] , 422);
+            return response()->json( ['messages'=>['messages'=> ['La unidad de negocios es obligatoria'], 'type'=>'danger']] , 422);
         }
         
         if($request->input('business_unit_id') == 'new'){

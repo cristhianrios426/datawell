@@ -4,7 +4,8 @@
 	<div class="row">
 		<div class="col-xs-12">
 			<ol class="breadcrumb">
-			  <li><a href="{{{ url('/') }}}">Inicio</a></li>			  
+			  <li><a href="{{{ url('/') }}}">Inicio</a></li>
+			  <li class="active">Ayuda</li>					  
 			  <li class="active">Preguntas Frecuentes</li>
 			</ol>
 		</div>

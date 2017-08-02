@@ -51,13 +51,13 @@
 <div class="row">
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
-            <label >profundidad tvd</label>
+            <label >Profundidad TVD (ft)</label>
             <div class="form-control"  >{{{ $model->profundidad_tvd }}}</div> 
         </div>
     </div>
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
-            <label >profundidad md</label>
+            <label >Profundidad MD (ft)</label>
             <div class="form-control"  >{{{ $model->profundidad_md }}}</div> 
         </div>
     </div>
@@ -65,13 +65,13 @@
 <div class="row">
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
-            <label >well_kb_elev</label>
+            <label >Well kb elev (ft)</label>
             <div class="form-control"  >{{{ $model->well_kb_elev }}}</div>                                                 
         </div>
     </div>
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
-            <label >rotaty_elev</label>
+            <label >Rotary elev (ft)</label>
             <div class="form-control"  >{{{ $model->rotaty_elev }}}</div>   
         </div>
     </div>
@@ -131,4 +131,18 @@
             <div class="form-control"  >{{{ ( $model->drilled_at ? $model->drilled_at->format('Y-m-d') : '' ) }}}</div>
         </div>
     </div>
+</div>
+<div class="row">
+    <div class="col-sm-6 col-xs-12">
+         <div class="form-group">
+            <label >Servicios en las secciones</label>
+            <div class="form-control"  >{{{ implode(', ', $model->sectionsNames()) }}}</div>
+        </div>
+    </div>    
+    <div class="col-sm-6 col-xs-12">
+         <div class="form-group">
+            <label >Tipos de servicio</label>
+            <div class="form-control"  >{{{ implode(', ', $model->serviceTypesNames()) }}}</div>
+        </div>
+    </div> 
 </div>

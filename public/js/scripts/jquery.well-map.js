@@ -4,7 +4,7 @@
 		var wellMap = function($el, options){
 			this.$el = $el;
 			this.options = options;
-		}
+		};
 
 		$.extend(wellMap,{
 			defaults: {}
@@ -32,9 +32,22 @@
 				this.latlongs = [];
 				if(this.options.data && this.options.data.length > 0){
 					$.each(this.options.data, function(idx, obj){
-						if(obj.lat != ''  && obj.long != ''){							
+						if(obj.lat != ''  && obj.long != ''){
+							console.log(obj);
+							var icon = L.icon({
+							    iconUrl: obj.type.markerUrl,
+							    //iconSize: [25, 38],
+							    iconSize: [25, 25],
+							    iconAnchor: [12, 12],
+							    popupAnchor: [0, -8]							    
+							});						
 							var latlong = L.latLng(obj.lat, obj.long);
-							var marker = L.marker(latlong);
+							var marker = L.marker(latlong, { icon:icon  });
+							obj.join = function(){
+								return function(text, render){									
+									return this[text].join(', ');
+								};
+							};
 							var output = Mustache.render(self.options.popUpTemplate, obj);
 							marker.bindPopup(output);
 							self.markers.push(marker);

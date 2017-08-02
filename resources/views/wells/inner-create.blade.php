@@ -43,13 +43,13 @@
     <div class="col-sm-6 col-xs-12">
          <div class="form-group">
             <label >Latitud</label>
-            <input type="text" name="lat" class="form-control" value="{{{ $model->lat }}}">   
+            <input type="text" name="lat" class="form-control number" placeholder="Ejemplo: 7.103659" value="{{{ $model->lat }}}">   
         </div>
     </div>
     <div class="col-sm-6 col-xs-12">
         <div class="form-group">
             <label >Longitud</label>
-            <input type="text" name="long" class="form-control" value="{{{ $model->long }}}">   
+            <input type="text" name="long" class="form-control number" placeholder="Ejemplo: -73.097565" value="{{{ $model->long }}}">   
         </div>
     </div>
 </div>
@@ -76,7 +76,7 @@
     </div>
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
-            <label >Rotaty elev (ft)</label>
+            <label >Rotary elev (ft)</label>
             <input type="number" name="rotaty_elev" class="form-control" value="{{{ $model->z }}}" >
         </div>
     </div>

@@ -2,7 +2,7 @@
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
             <label >Cliente<strong class="require-mark">*</strong></label>
-            <select  name="client_id"  class="require form-control required">
+            <select  data-live-search="true"  name="client_id"  class="selectpicker require form-control required">
                 <option value="">Selecciona</option>
                 @foreach (\App\ORM\Client::all()  as $client)
                   <option {{ $model->client && $model->client_id == $client->getKey() ? 'selected' : '' }} value="{{{ $client->getKey() }}}">{{{ $client->name }}}</option>
@@ -33,9 +33,9 @@
         <div class="form-group">
             <label >Tipo de servicio <strong class="require-mark">*</strong></label>
             <select service-type location-dep-ref name="service_type_id"  class="require form-control required">
-                <option value="">Selecciona</option>
+                <option  value="">Selecciona</option>
                 @foreach ($serviceTypes as $serviceType)
-                  <option  {{ ($model->service_type_id == $serviceType->getKey() ? 'selected' : '' ) }} value="{{{ $serviceType->getKey() }}}">{{{ $serviceType->name }}}</option>
+                  <option business-unit="{{ ($serviceType->businessUnit ? $serviceType->businessUnit->getKey() : '-') }}" {{ ($model->service_type_id == $serviceType->getKey() ? 'selected' : '' ) }} value="{{{ $serviceType->getKey() }}}">{{{ $serviceType->name }}}</option>
                 @endforeach
             </select>
         </div>
@@ -70,8 +70,16 @@
     </div>
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
+            <label >Fecha de Inicio <strong class="require-mark">*</strong> </label>
+            <input type="text" name="started_at" class="form-control required date" datepicker value="{{{ $model->started_at ? $model->started_at->format('Y-m-d') : '' }}}" >
+        </div>
+    </div>    
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <div class="form-group">
             <label >Fecha de terminaci&oacute;n <strong class="require-mark">*</strong> </label>
-            <input type="text" name="ended_at" class="form-control required date" datepicker value="{{{ $model->ended_at }}}" >
+            <input type="text" name="ended_at" class="form-control required date" datepicker value="{{{ $model->ended_at ? $model->ended_at->format('Y-m-d') : '' }}}" >
         </div>
     </div>
 </div>

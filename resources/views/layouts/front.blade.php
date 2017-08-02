@@ -23,9 +23,9 @@
     <div loader="" >
       <img src="{{ asset('img/l.gif') }}  " alt="">
     </div>
-    <div id="app">
+    <div id="app" style="padding-left: 30px; padding-right: 30px">
         <nav class="navbar main-navbar navbar-default navbar-static-top">
-            <div class="container">
+            <div class="container-fluid">
                 <div class="navbar-header">
                     <!-- Collapsed Hamburger -->
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#app-navbar-collapse">

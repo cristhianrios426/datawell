@@ -80,15 +80,14 @@ class HomeController extends Controller
             'deviation' , 
             'location',
             'coorSys',             
-            'services'=>function($query){
-                $query->select($query->getForeignKeyName(), 'services.id as id', 'service_type_id', 'service_types.name as service_types_name', 'service_types.id as service_types_id');                
-                $query->join('service_types', 'service_type_id', 'service_types.id');                
-                $query->groupBy('service_types_id');                
-                return $query;
-            },
-
+            'services.type',
+            'services.section',
+            'location',
             ]);
         $all = $this->repository->get();
+        if($all->count() > 0){
+            $all->addAppends(['sectionsNames','serviceTypesNames']);
+        }
         
         if (request()->wantsJson()) {
             return response()->json($models);
@@ -144,7 +143,11 @@ class HomeController extends Controller
             if(!$location){
                 return [];
             }
-            $users = User::vacum()->isSupervisor()->inLocation($location)->get();
+            $list = $location->listAscendence();
+            $locationId = $location->parent_id == 0 ? $location->getKey() : $list[0];
+            $currentLocation = ($locationId == $location->getKey()) ? $location : Location::find($locationId);    
+            
+            $users = User::vacum()->isSupervisor()->inLocation($currentLocation)->get();
             return $users;
         }
         return [];

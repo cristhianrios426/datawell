@@ -10,7 +10,7 @@ class BaseModel extends Model{
     
 	public function newCollection(array $models = [])
     {
-        return new Collection($models);
+        return new BaseCollection($models);
     }
 
     public function scopeVacum($q){
@@ -37,6 +37,8 @@ class BaseModel extends Model{
 
         return  $sortLinks;
     }
+
+    
 
     // public function addVisible($attrs){
     //     if(!is_array($attrs)){
@@ -184,7 +186,7 @@ class BaseModel extends Model{
     }
 
     public function createdBy(){
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
     }
 
 }

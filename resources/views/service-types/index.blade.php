@@ -16,7 +16,7 @@
 									<h4>{{{ ucfirst($entitiesLabel) }}}</h4>
 								</div>
 								<div class="pull-right">
-									@can('create', $classname)<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
+									@can('create', \App\ORM\Setting::class)<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
 										<i class="fa fa-plus"  aria-hidden="true"></i> Crear  {{{ $entityLabel }}}
 									</button>@endcan
 								</div>
@@ -54,7 +54,7 @@
 							@foreach ($models as $model)
 								<tr>
 									<td>{{{ $model->id }}}</td>
-									<td>{{{ $model->businessUnit->name }}}</td>						
+									<td>{{{ ($model->businessUnit ? $model->businessUnit->name : '-') }}}</td>						
 									<td>{{{ $model->name }}}</td>						
 									<td>
 										<div class="btn-group">

@@ -4,7 +4,14 @@
 @stop
 @section('content')
 <div class="container">
-	@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
+	<div class="row">
+		<div class="col-xs-12">
+			<ol class="breadcrumb">
+			  <li><a href="{{{ url('/') }}}">Inicio</a></li>		  
+			  <li class="active">Pozos</li>
+			</ol>
+		</div>
+	</div>
 	<div class="row">
 		<div class="col-xs-12" style="margin-bottom: 22px">
 			<div class="panel panel-default">
@@ -69,7 +76,7 @@
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<input type="text" daterangepicker name="ended_at" class="form-control " value="{{{ isset($query['ended_at']) ? $query['ended_at'] : ''}}}" class="" placeholder="Fecha de servicios">
+										       		<input type="text" daterangepicker name="ended_at" class="form-control " value="{{{ isset($query['ended_at']) ? $query['ended_at'] : ''}}}" class="" placeholder="Fecha de terminaci&oacute;n del servicio">
 										      	</div>
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
@@ -95,23 +102,23 @@
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<select data-none-selected-text="Regiones" data-value="{{ isset($query['area_id'])  ?  json_encode($query['area_id']) : '' }}" name="area_id[]" depends-location location-list="area" multiple  title="Regiones" class=" selectpicker form-control"></select>
+										       		<select data-none-selected-text="Regi&oacute;n" data-value="{{ isset($query['area_id'])  ?  json_encode($query['area_id']) : '' }}" name="area_id[]" depends-location location-list="area" multiple  title="Regi&oacute;n" class=" selectpicker form-control"></select>
 										      	</div>
 											</div>
 											
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">													
-										       		<select title="Campos" name="camp_id[]" data-value="{{ isset($query['camp_id'])  ?  json_encode($query['camp_id']) : '' }}" depends-location location-list="camp" multiple class=" selectpicker form-control"></select>
+										       		<select title="Campo" name="camp_id[]" data-value="{{ isset($query['camp_id'])  ?  json_encode($query['camp_id']) : '' }}" depends-location location-list="camp" multiple class=" selectpicker form-control"></select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<select name="cuenca_id[]" data-value="{{ isset($query['cuenca_id'])  ?  json_encode($query['cuenca_id']) : '' }}" title="Cuencas"  depends-location location-list="cuenca" multiple class=" selectpicker form-control"></select>
+										       		<select name="cuenca_id[]" data-value="{{ isset($query['cuenca_id'])  ?  json_encode($query['cuenca_id']) : '' }}" title="Cuenca"  depends-location location-list="cuenca" multiple class=" selectpicker form-control"></select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">													
-										       		<select name="operator_id[]" title="Operadores" multiple class="selectpicker form-control">										       			
+										       		<select name="operator_id[]" title="Operador" multiple class="selectpicker form-control">										       			
 										       			@foreach ($operators as $m)
 										       				<option {{ ( isset($query['operator_id']) && in_array($m->getKey(), $query['operator_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
@@ -121,7 +128,7 @@
 
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<select name="well_type_id[]" title="tipos" multiple class="selectpicker form-control">
+										       		<select name="well_type_id[]" title="Tipo de pozo" multiple class="selectpicker form-control">
 										       			@foreach ($types as $m)
 										       				<option {{ ( isset($query['well_type_id']) && in_array($m->getKey(), $query['well_type_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
@@ -133,17 +140,17 @@
 										       		<select title="Profundidad TVD (ft)" name="profundidad_tvd" class="selectpicker form-control">
 										       			<option value="">Selecciona</option>
 										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '0,5000' ? 'selected="selected"' : '' ) }} value="0,5000">[0 - 5.000)</option>
-										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '5000,10000' ? 'selected="selected"' : '' ) }} value="5000,10000">[5.000,10.000)</option>
-										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '10000,15000' ? 'selected="selected"' : '' ) }} value="10000,15000">[10.000,15.000)</option>
-										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '15000,20000' ? 'selected="selected"' : '' ) }} value="15000,20000">[15.000,20.000)</option>
-										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '20000,25000' ? 'selected="selected"' : '' ) }} value="20000,25000">[20.000,25.000)</option>
-										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '25000,1000000' ? 'selected="selected"' : '' ) }} value="25000,1000000">[25.000,>)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '5000,10000' ? 'selected="selected"' : '' ) }} value="5000,10000">[5.000 - 10.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '10000,15000' ? 'selected="selected"' : '' ) }} value="10000,15000">[10.000 - 15.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '15000,20000' ? 'selected="selected"' : '' ) }} value="15000,20000">[15.000 - 20.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '20000,25000' ? 'selected="selected"' : '' ) }} value="20000,25000">[20.000 - 25.000)</option>
+										       			<option {{ (isset($query['profundidad_tvd']) && $query['profundidad_tvd'] == '25000,1000000' ? 'selected="selected"' : '' ) }} value="25000,1000000">(>25000]</option>
 										       		</select>
 										      	</div>
 											</div>
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<select name="deviation_id[]" title="Tipos de desviaci&oacute;n" multiple class="selectpicker form-control">
+										       		<select name="deviation_id[]" title="Tipo de desviaci&oacute;n" multiple class="selectpicker form-control">
 										       			@foreach ($deviations as $m)
 										       				<option {{ ( isset($query['deviation_id']) && in_array($m->getKey(), $query['deviation_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
@@ -152,7 +159,7 @@
 											</div>										
 											<div class="col-xs-12 col-sm-6  col-md-4">
 												<div class="form-group form-group-xs">
-										       		<select name="section_id[]" title="Secciones" multiple class="selectpicker form-control">
+										       		<select name="section_id[]" title="Sección del pozo" multiple class="selectpicker form-control">
 										       			@foreach ($sections as $m)
 										       				<option {{ ( isset($query['section_id']) && in_array($m->getKey(), $query['section_id']) ? 'selected' : '' ) }} value="{{{ $m->getKey() }}}">{{{ $m->name }}}</option>
 										       			@endforeach
@@ -182,34 +189,7 @@
 					
 			@foreach ($models as $model)
 				<div class="col-xs-12 col-md-6">
-					<div class="panel panel-info ">
-						<div class="panel-heading"><h4>{{{ $model->name }}}</h4></div>
-						<div class="panel-body">
-							<ul class="list-group">
-							  <li class="list-group-item"><strong>Estado:</strong> 
-							  	{{ $model->textState() }}						  	
-							  </li>
-							  <li class="list-group-item"><strong>Tipo de pozo:</strong> {{{ $model->type ? $model->type->name : '' }}} </li>
-							  <li class="list-group-item"><strong>Ubicación:</strong> {{{ $model->location ? $model->location->fullName() : '' }}} </li>
-							  <li class="list-group-item"><strong>Operador:</strong> {{{ $model->operator ? $model->operator->name : '' }}} </li>
-							  <li class="list-group-item"><strong>Regi&oacute;n:</strong> {{{ $model->area ? $model->area->name : '' }}} </li>
-							  <li class="list-group-item"><strong>Cuenca:</strong> {{{ $model->cuenca ? $model->cuenca->name : '' }}} </li>
-							  <li class="list-group-item"><strong>Campo:</strong> {{{ $model->camp ? $model->camp->name : '' }}} </li>
-							  <li class="list-group-item"><strong>Profundidad TVD (ft):</strong> {{{ $model->profundidad_tvd }}} </li>
-							</ul>
-						</div>
-						<div class="panel-footer text-right">							
-							<div class="btn-group">
-							  <button class="btn btn-primary">Acciones</button>
-							  <button data-toggle="dropdown" class="btn btn-primary dropdown-toggle"><span class="caret"></span></button>
-							  <ul class="dropdown-menu">
-									@can('view', $model)<li><a href="{{{ route($entityName.'.show', ['id'=>$model->id]) }}}"  >Ver detalles</a></li>@endcan
-								 	@can('update', $model)<li><a href="{{{ route('service.create',['well_id'=>$model->getKey()]) }}}"  >A&ntilde;adir servicio</a></li>@endcan
-									@can('update', $model)<li><a href="{{{ route($entityName.'.edit', ['id'=>$model->id]) }}}"  >Editar</a></li>@endcan
-							  </ul>
-							</div>
-						</div>
-					</div>
+					@include('wells.thumb', ['model'=>$model])
 				</div>
 			@endforeach
 			<div class="col-xs-12">
@@ -229,6 +209,14 @@
 					
 	</div>
 </div>
+
+<div class="modal fade " tabindex="-1" role="dialog" id="modal-model" aria-hidden="true" >
+	<div class="modal-dialog ">
+		<div class="modal-content" id="modal-content">
+			
+		</div>
+	</div>
+</div>
 @stop()
 @section('footer')
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
@@ -240,6 +228,8 @@
 	<script src="{{ asset('js/scripts/jquery.well-map.js') }}"></script>
 	<script src="{{ asset('vendors/mustache/mustache.min.js') }}"></script>
 	<script src="{{ asset('vendors/moment/moment.js') }}"></script>
+	<script src="{{ asset('js/scripts/entity.js') }}"></script>
+	<script src="{{ asset('js/scripts/crud-controller.js') }}"></script>
 	<script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 	<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 	@include('wells.bubble-map-template')

@@ -96,13 +96,19 @@ trait ApproveTrait{
     }
 
     public function textState(){
-        if ($this->state == \App\ORM\Well::STATE_APPROVING || $this->state == \App\ORM\Well::STATE_REVIEWING){
+        if ($this->approving()){
+            $text = 'Aprobaci&oacute;n pendiente';
+        }elseif ($this->reviewing()){
+            $text = 'Revisi&oacute;n pendiente';
+        }elseif ($this->state == \App\ORM\Well::STATE_APPROVING || $this->state == \App\ORM\Well::STATE_REVIEWING){
             $text = "Elementos pendiente por aprobar";
         }elseif($this->approved != 1){
             $text = "No aprobado";
+        }elseif($this->draft == 1){
+            $text = "Borrador";
         }else{
             $text = "Aprobado";
-        } 
+        }
         return $text;
     }
 
@@ -129,18 +135,20 @@ trait ApproveTrait{
 
     public function scopePendingApprove($q, $user)
     {
-        $q->where('state', static::STATE_APPROVING);
+        $table = $q->getModel()->getTable();
+        $q->where($table.'.'.'state', static::STATE_APPROVING);
         if(!$user->isSuperAdmin()){
-            $q->where('assigned_to', $user->getKey()); 
+            $q->where($table.'.'.'assigned_to', $user->getKey()); 
         }
         return $q;
     }
 
     public function scopePendingReview($q, $user)
     {
-        $q->where('state', static::STATE_REVIEWING);
+        $table = $q->getModel()->getTable();
+        $q->where($table.'.'.'state', static::STATE_REVIEWING);
         if(!$user->isSuperAdmin()){
-            $q->where('sent_by', $user->getKey()); 
+            $q->where($table.'.'.'sent_by', $user->getKey()); 
         }
         return $q;
     }

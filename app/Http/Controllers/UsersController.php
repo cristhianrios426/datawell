@@ -58,7 +58,10 @@ class UsersController extends SettingsController
         }
         if($request->has('sort') && in_array($request->input('sort'), $sorts ) ){
             $this->repository->orderBy($request->input('sort'), $request->input('sort_type', 'desc'));
-        } 
+        }
+        if(!\Auth::user()->isSuperAdmin()){
+            $this->repository->where('role_id', '!=', User::ROLE_SUPERADMIN);
+        }
         $models = $this->repository->paginate(20);
         if (request()->wantsJson()) {
             return response()->json($models);
@@ -200,6 +203,15 @@ class UsersController extends SettingsController
             return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
         }
         return \View::make('users.delete',['model'=>$model]);
+    }
+
+    public function sendToken(Request $request){
+        if($request->has('id')){
+            $user = User::find($request->input('id'));
+            $user->sendActivationCode(User::GENERATE_ACTIVATION);
+        }else{
+
+        }
     }
 
     public function accountActivation(Request $request, $token){

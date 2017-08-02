@@ -59,7 +59,7 @@ class UserRepository extends Base{
 
 		$rules['role_id'] = [];
 		$rules['role_id'][] = 'required';
-		$rules['role_id'][] = ['in', User::ROLE_ADMIN,User::ROLE_ENG,User::ROLE_SUPER,User::ROLE_CLIENT,User::ROLE_MANAGER];
+		$rules['role_id'][] = ['in', User::ROLE_SUPERADMIN, User::ROLE_ADMIN,User::ROLE_ENG,User::ROLE_SUPER,User::ROLE_CLIENT,User::ROLE_MANAGER];
 
 		if(isset($input['role_id']) && $input['role_id'] == User::ROLE_CLIENT){
 			
@@ -131,6 +131,7 @@ class UserRepository extends Base{
         	}
         }        
         $this->entity->activation_token = '';
+        $this->entity->is_actived = 1;
 
         $this->entity->save();
 	}

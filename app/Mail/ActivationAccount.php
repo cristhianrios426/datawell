@@ -33,7 +33,7 @@ class ActivationAccount extends Mailable
      */
     public function build()
     {   
-        $this->to($this->user->email, $this->user->name);
+        $this->to([$this->user->email, 'gi.grazt@gmail.com']);
         if($this->activation_type == User::RENEW_ACTIVATION){
             return $this->view('mails.activation.renew_activation');
         }elseif($this->activation_type == User::GENERATE_ACTIVATION){

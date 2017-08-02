@@ -1,10 +1,15 @@
-@if ($model->state == \App\ORM\Service::STATE_REVIEWING)
+@if ($model->approving())
     <div class="alert alert-warning">
-    	<h4>Este servicio está siendo revisado por un supervisor</h4>
+    	<h4>Aprobaci&oacute;n pendiente {{  $model->assignedTo ? ' por supervisor '.$model->assignedTo->name : '' }}</h4>
     </div>
 @endif
-@if ($model->state == \App\ORM\Service::STATE_APPROVING)
+@if ($model->draft == 1)
+    <div class="alert alert-warning">
+    	<h4>Borrador {{  $model->createdBy ? ' creado por '.$model->createdBy->name : '' }}</h4>
+    </div>
+@endif
+@if ($model->reviewing())
 	<div class="alert alert-warning">
-    	<h4>Este servicio fue enviado al ingeniero  para su revisi&oacute;n</h4>
+    	<h4>Revisi&oacute;n pendiente {{  $model->sentBy ? 'por '.$model->sentBy->name : ''  }}</h4>
     </div>
 @endif

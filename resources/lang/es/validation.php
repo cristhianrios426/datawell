@@ -91,7 +91,7 @@ return [
     'unique_eloquent_or_value'      => 'El campo :attribute  ya está en uso.',
     'case_diff'      => 'El campo :attribute debe incluir mayúsculas y minúsculas.',
     'numbers'      => 'El campo :attribute debe incluir al menos un número.',
-    'letters'      => 'El campo :attribute debe incluir al menos un una letra.',
+    'letters'      => 'El campo :attribute debe incluir al menos una letra.',
     'symbols'      => 'El campo :attribute debe incluir al menos un símbolo.',
     'exists_eloquent'      => 'El campo :attribute no es válido.',
     'exists_eloquent'      => 'El campo :attribute no es válido.',

@@ -9,7 +9,7 @@
         <div class="form-group">
           <label >Padre </label>
           <select data-live-search="true" name="parent_id" class="selectpicker form-control" id="">
-            <option value="0">seleccione</option>
+            <option value="0">Seleccione</option>
             @include('util.nested-tree-options',['listModels'=>$locations, 'level'=>'', 'selected'=>$model->parent_id ])
           </select>
         </div>

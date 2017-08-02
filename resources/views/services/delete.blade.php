@@ -7,7 +7,7 @@
     <div class="row">
       <div class="col-xs-12">
         <div class="alert alert-warning">
-          <h4>&iquest;Est&aacute; seguro de eliminar el {{{ $entityLabel }}} <i><strong>"{{ $model->name }}"</strong></i>? Los cambios ser&aacute;n permanentes e irreversibles.</h2></h4>
+          <h4>&iquest;Est&aacute; seguro de eliminar el {{{ $entityLabel }}} <i><strong>"{{ $model->type ? $model->type->name : '' }}"</strong></i>? Los cambios ser&aacute;n permanentes e irreversibles.</h2></h4>
         </div>
       </div>
     </div>

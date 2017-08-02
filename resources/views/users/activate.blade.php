@@ -61,6 +61,7 @@
                                             <div class="form-group">
                                                 <label >Email</label>
                                                 <input type="text" name="email" readonly class="required email form-control" value="{{{ $model->email }}}" >
+                                                <p class="help-block">Este es tu correo electr&oacute;nico para inicio de sesi&oacute;n</p>
                                             </div>
                                         </div>
                                         <div class="col-xs-12 col-sm-6">

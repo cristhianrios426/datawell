@@ -91,6 +91,11 @@
                                             Tipos de pozo
                                         </a>
                                     </li>
+                                     <li>
+                                        <a href="{{ route('deviation.index') }}" >
+                                            Tipos de desviaci&oacute;n
+                                        </a>
+                                    </li>
                                     <li>
                                         <a href="{{ route('coordinate-sys.index') }}" >
                                             Sistemas de coordenadas
@@ -135,6 +140,13 @@
                                             Preguntas Frecuentes
                                         </a>
                                     </li> 
+                                    @can('index', "App\\ORM\\Manual")
+                                        <li>
+                                            <a href="{{ route('manual.index') }}" >
+                                                Manual de usuario
+                                            </a>
+                                        </li>
+                                    @endif 
                                 </ul>
                             </li>
                         @endcan                       
@@ -142,9 +154,28 @@
 
                     <!-- Right Side Of Navbar -->
                     <ul class="nav navbar-nav navbar-right">
-                        <!-- Authentication Links -->                        
-                        <li><a href="{{ route('preguntas-frecuentes') }}" >FAQ</a></li>
-                        <li><a href="#" data-target="#contact-modal" data-toggle="modal">Contacto</a></li>
+                        <!-- Authentication Links --> 
+                        <li>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+                               Ayuda<span class="caret"></span>
+                            </a>
+                             <ul class="dropdown-menu multi-level" role="menu">
+                                <li>
+                                    <a href="{{route('preguntas-frecuentes') }}" >
+                                        Preguntas frecuentes
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('manual.list') }}" >
+                                        Manual de usuario
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" data-target="#contact-modal" data-toggle="modal">Contacto</a>
+                                </li>
+                            </ul>
+                        </li>                     
+                        
                         @if (Auth::guest())
                             <li><a href="{{ route('login') }}">Login</a></li>
                         @else                            

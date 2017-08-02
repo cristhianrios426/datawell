@@ -38,6 +38,17 @@ class User extends Setting implements AuthenticatableContract , CanResetPassword
     protected $fillable = [];
     protected $dates = ['deleted_at','created_at', 'updated_at'];
     
+    public static function getRoles(){
+        return [
+            static::ROLE_SUPERADMIN,
+            static::ROLE_ADMIN,
+            static::ROLE_ENG,
+            static::ROLE_SUPER,
+            static::ROLE_CLIENT,
+            static::ROLE_MANAGER
+        ];
+    }
+
     public function isSuperAdmin(){ 
         return $this->role_id == static::ROLE_SUPERADMIN; 
     }
@@ -70,7 +81,7 @@ class User extends Setting implements AuthenticatableContract , CanResetPassword
     	$this->is_actived = 0;
     	$this->activation_token = $this->hashToken($token);
         $time = new \DateTime();
-        $time->modify('+ 1 days');
+        $time->modify('+ 5 days');
     	$this->expire_token = $time;
 
     	$this->save();
@@ -117,7 +128,7 @@ class User extends Setting implements AuthenticatableContract , CanResetPassword
     }
 
     public function roleName(){
-        return trans('roles.'.($this->role_id - 1));
+        return trans('roles.'.($this->role_id));
     }
 
     public function sendPasswordResetNotification($token)

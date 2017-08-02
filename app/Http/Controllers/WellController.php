@@ -56,9 +56,25 @@ class WellController extends Controller
 
         $this->repository->filter($request);
         $this->repository->filterUser(\Auth::user());
-        $this->repository->with(['cuenca', 'area', 'operator', 'camp', 'type' , 'block','deviation' , 'coorSys']);
+        $this->repository->with([
+            'cuenca', 
+            'area', 
+            'operator',
+            'camp', 
+            'type' , 
+            'block',
+            'deviation' , 
+            'coorSys',
+            'services'=>function($q4){
+                $q4->filterUser(\Auth::user());
+            },   
+            'services.type',
+            'services.section',            
+            'location',
+        ]);
         $models = $this->repository->paginate(12);
         $all = $this->repository->get();
+        $all->addAppends(['sectionsNames','serviceTypesNames']);
         if (request()->wantsJson()) {
             return response()->json($models);
         }
@@ -318,14 +334,23 @@ class WellController extends Controller
     public function show($id)
     {
         $user = \Auth::user();
-        $model = $this->repository->whereKey($id)->with(['services'=>function($q) use ($user){
-               $q->filterUser($user);
+        $model = $this->repository->whereKey($id)->with(
+            [
+                'services'=>function($q) use ($user){
+                    $q->filterUser($user);
+                },
+                'services.type',
+                'services.section',
+            ])->first();
 
-        }])->first();
+        
+
+        
 
         if (request()->wantsJson()) {
             return response()->json([
                 'data' => $model,
+              
             ]);
         }
 
@@ -358,11 +383,15 @@ class WellController extends Controller
     public function destroy($id)
     {
         $model = $this->repository->whereKey($id)->first();
-        if(request()->wantsJson()) {            
-            $d =  $model->delete($id);
-            return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
+        $user = \Auth::user();
+        if($model && $user->can('delete', $model)){
+            if(request()->wantsJson()) {            
+                $d =  $model->delete($id);
+                return response()->json( ['messages'=>['messages'=>['Eliminaci&oacute;n completa. Redireccionando'], 'type'=>'success']] , 200);
+            }
+            return \View::make($this->entitiesName.'.delete',['model'=>$model]);
         }
-        return \View::make($this->entitiesName.'.delete',['model'=>$model]);
+        
     }
 
     public function serveAttachment($id, $aid)

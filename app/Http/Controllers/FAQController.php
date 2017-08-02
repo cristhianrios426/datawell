@@ -32,9 +32,6 @@ class FAQController extends SettingsController
         $query = $request->all();
         $sorts = ['question', 'answer'];
         $sortLinks  = $this->classname::sortableLinks($query, $sorts);
-
-        /**/
-
         if($request->has('term')){
             $this->repository->term($sorts, $request->input('term'));
         }

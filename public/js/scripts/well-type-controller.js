@@ -4,13 +4,25 @@
 	$('body').on('click', '*[data-create]', function(){
 		var $this = $(this);
 		crud.setEntity();
-		crud.create($('#modal-model .modal-content'));
+		crud.create($('#modal-model .modal-content'))
+			.then(function(){
+				var picker = $('#modal-model .modal-content').find('.colorpicker-component').colorpicker({format: 'hex'});
+				if(!picker.colorpicker('getValue')){
+					picker.colorpicker('setValue',"#000000");
+				}
+			});
 	});
 
 	$('body').on('click', '[data-edit]', function(){		
 		var $this = $(this);
 		crud.entity.setId($this.data('edit'));
-		crud.edit($('#modal-model .modal-content'));
+		crud.edit($('#modal-model .modal-content'))
+			.then(function(){
+				var picker = $('#modal-model .modal-content').find('.colorpicker-component').colorpicker({format: 'hex'});
+				if(!picker.colorpicker('getValue')){
+					picker.colorpicker('setValue',"#000000");
+				}
+			});
 	});
 	$('body').on('click', '*[data-show]', function(){
 		var $this = $(this);

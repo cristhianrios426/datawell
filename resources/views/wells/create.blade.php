@@ -5,7 +5,17 @@
 @section('content')
 <div class="container">
     <form form-save id="save-well" action="{{{ ( !$model->exists  ? route('well.store') : route('well.update',['id'=>$model->getKey()]))  }}}" method="{{{ ( !$model->exists  ? 'POST' : 'PUT' )  }}}">
-         <div class="row">
+        
+        <div class="row">
+            <div class="col-xs-12">
+                <ol class="breadcrumb">
+                  <li><a href="{{{ url('/') }}}">Inicio</a></li>          
+                  <li><a href="{{ route('well.index') }}">Pozos</a></li>
+                  <li>{{ $model->exists ? $model->name : 'Nuevo Pozo' }}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-xs-12">
                 @include('wells.state-message', ['model'=>$model])
             </div>

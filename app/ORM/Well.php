@@ -19,6 +19,44 @@ class Well extends BaseModel
         return $this->morphMany('App\ORM\Attachment', 'attachable');
     }
 
+
+    public function getSectionsNamesAttribute(){
+        return $this->sectionsNames();
+    }
+    public function sectionsNames(){
+        $sections = [];
+        foreach ($this->services as $key => $service){
+            if(!in_array($service->section->name,$sections) ){
+                $sections[] = $service->section->name;
+            }
+        }
+        return $sections;
+    }
+
+    public function getServiceTypesNamesAttribute(){
+        return $this->serviceTypesNames();
+    }
+
+    public function markerUrl(){
+        $type = $this->type;
+        if($type){
+            return $type->getMarkerUrl();
+        }else{
+            return \App\ORM\WellType::markerUrl();
+        }
+
+    }
+
+    public function serviceTypesNames(){
+        $serviceTypes = [];
+        foreach ($this->services as $key => $service){
+            if(!in_array($service->type->name,$serviceTypes) ){
+                $serviceTypes[] = $service->type->name;
+            }
+        }
+        return $serviceTypes;
+    }
+
     public function type(){
     	return $this->belongsTo('App\ORM\WellType', 'well_type_id')->withTrashed();
     }
@@ -102,23 +140,26 @@ class Well extends BaseModel
     //     return $q;
     // }
 
-    public function scopeFilterUser($q, $user){        
+    public function scopeFilterUser($q, $user){
+        $table = $q->getModel()->getTable();  
         if($user->isClient()){
-            $q->whereHas('services', function($q2) use ($user){
+            $q->whereHas('services', function($q2) use ($user,$table){
                  $q2->filterUser($user);                
                  return $q2;
             })
-            ->where('approved',1);
+            ->where($table.'.'.'approved',1);
         }else{
+            $q->where($table.'.'.'id', '>', 0);
+            $q->orWhere(function($q3) use ($user, $table){
+                $q3->where($table.'.'.'draft', 1)->where($table.'.'.'created_by', $user->getKey());
+            });     
             if(!$user->isSuperAdmin() && !$user->isAdmin()){
-                $q->orWhere(function($q2) use ($user){
+                $q->orWhere(function($q2) use ($user, $table){
                     $q2->aprovingUser($user);                    
-                })
-                ->orWhere(function($q3) use ($user){
-                    $q3->where('draft', 1)->where('created_by', $user->getKey());
-                })
-                ->orWhere('approved', 1);
-            }           
+                })                
+                ->orWhere($table.'.'.'approved', 1);
+            }     
+
         }
     }
 

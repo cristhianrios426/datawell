@@ -37,9 +37,19 @@
     </div>
     <div class="col-xs-12 col-sm-6">
         <div class="form-group">
+            <label >Fecha de inicio <strong class="require-mark">*</strong> </label>
+            <div class="form-control">
+              {{{ $model->started_at ? $model->started_at->format('Y-m-d') : '' }}}
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-12 col-sm-6">
+        <div class="form-group">
             <label >Fecha de terminaci&oacute;n <strong class="require-mark">*</strong> </label>
             <div class="form-control">
-              {{{ $model->ended_at }}}
+              {{{ $model->ended_at ? $model->ended_at->format('Y-m-d') : ''  }}}
             </div>
         </div>
     </div>

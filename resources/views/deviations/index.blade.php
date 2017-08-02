@@ -5,6 +5,7 @@
 @section('content')
 <div class="container">
 	<div class="row">
+		@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 		<div class="col-xs-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">

@@ -14,6 +14,19 @@
     </div>
     <div class="row">
       <div class="col-xs-12">
+        <div class="form-group">
+          <label >Color de marcador</label>
+          <div class="input-group colorpicker-component">
+            <input type="text" name="color"  class="color form-control" value="" >
+            <span class="input-group-addon"><i></i></span>
+          </div>
+          <span id="helpBlock" class="help-block">Este ser&aacute; el color del &iacute;cono en el mapa</span>
+         
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12">
         <div alert ></div>
       </div>
     </div>

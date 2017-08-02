@@ -7,6 +7,18 @@
     <form form-save action="{{{ ( !$model->exists  ? route($entityName.'.store') : route($entityName.'.update',['id'=>$model->getKey()]))  }}}" method="{{{ ( !$model->exists  ? 'POST' : 'PUT' )  }}}" id="save-service">
         <div class="row">
             <div class="col-xs-12">
+                <ol class="breadcrumb">
+                  <li><a href="{{{ url('/') }}}">Inicio</a></li>          
+                  <li><a href="{{ route('well.index') }}">Pozos</a></li>
+                  @if ($model->exists)
+                    <li><a href="{{ route('well.show', ['id'=>$model->well->id ] ) }}">{{ $model->well->name }}</a></li>
+                  @endif
+                  <li>Servicio: {{ $model->exists ? $model->type->name : 'Nuevo Servicio' }}</li>
+                </ol>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
                 @include('services.state-message', ['model'=>$model])
             </div>
         </div>
@@ -68,7 +80,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-xs-12">
-                                   <small>Los campos marcado son <strong class="require-mark">*</strong> son obligatorios</small>
+                                   <small>Los campos marcado con <strong class="require-mark">*</strong> son obligatorios</small>
                                 </div>
                             </div>
                             <div class="row">

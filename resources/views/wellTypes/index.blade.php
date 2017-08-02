@@ -5,6 +5,7 @@
 @section('content')
 <div class="container">
 	<div class="row">
+		@include('util.breadcrums.settings',['active'=>ucfirst($entitiesLabel)])
 		<div class="col-xs-12">
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -15,7 +16,7 @@
 									<h4>{{{ ucfirst($entitiesLabel) }}}</h4>
 								</div>
 								<div class="pull-right">
-									@can('create', $classname)<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
+									@can('create',  \App\ORM\Setting::class)<button data-create data-toggle="modal" data-target="#modal-model" href="" class="btn btn-success">
 										<i class="fa fa-plus"  aria-hidden="true"></i> Crear  {{{ $entityLabel }}}
 									</button>@endcan
 								</div>
@@ -95,6 +96,9 @@
 </div>
 @stop()
 @section('footer')	
-    <script src="{{ asset('js/scripts/entity.js') }}"></script>
+    <script src="{{ asset('vendors/bootstrap-colorpicker-master/dist/js/bootstrap-colorpicker.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('vendors/bootstrap-colorpicker-master/dist/css/bootstrap-colorpicker.min.css') }}">
+    <script src="{{ asset('js/scripts/entity.js') }}"></script>    
     <script src="{{ asset('js/scripts/crud-controller.js') }}"></script>
+    <script src="{{ asset('js/scripts/well-type-controller.js') }}"></script>
 @stop
